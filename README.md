@@ -20,9 +20,11 @@ Key Features
 Compatible with most Chromium-based browsers, including Chrome and Edge.
 
 How to Use
+
 Click the extension icon in your browser toolbar.
 The tool automatically cleans the current link and copies it.
 Paste the clean link anywhere you want to share it.
 
 Privacy
+
 We do not collect any user data.
