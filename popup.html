@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Feedback</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self';
+                   script-src 'self';
+                   style-src 'self';
+                   img-src 'self' data:;
+                   connect-src 'self';
+                   object-src 'none';">
+    <title>Get Clean URL</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="popup-container">
-        <div id="message" class="message"></div>
+        <div id="url-display">Loading URL...</div>
+        <div id="message"></div>
+        <div class="brand-footer">Get Clean URL</div>
     </div>
     <script src="popup.js"></script>
 </body>

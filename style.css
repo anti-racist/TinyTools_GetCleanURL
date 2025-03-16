@@ -1,19 +1,255 @@
-body {
+/* Reset all browser defaults */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
+/* Base styles */
+html {
+    background-color: #ffffff;
+}
+
+body {
+    width: 340px;
+    background-color: #ffffff;
+    color: white;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 10px;
+}
+
+/* Popup Container with dynamic styling */
 .popup-container {
-    width: 100px;
-    padding: 15px;
+    width: 100%;
+    padding: 14px 22px 14px;
+    background: #ffffff;
+    border: none;
+    border-radius: 14px;
+    margin: 0;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 
+                0 2px 6px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    transition: all 0.4s ease;
+}
+
+/* URL Display Box with elegant styling */
+#url-display {
+    background-color: #ffffff;
+    padding: 16px;
+    border-radius: 10px;
+    margin: 0 auto 16px auto;
+    word-break: break-all;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333333;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-height: 85px;
+    overflow-y: auto;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-align: left;
-    background-color: #597c47; 
-    font-family: Arial, sans-serif; 
+    position: relative;
+    transform: translateZ(0);
+    will-change: transform;
 }
 
-.message {
-    font-size: 18px;
-    color: #fff; 
-    margin-bottom: 5px;
+#url-display:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px) translateZ(0);
 }
 
+/* Message Styling with refined design */
+#message {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.25s ease-out forwards;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+#message:hover {
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Message text container */
+.message-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Brand footer with optimized transition */
+.brand-footer {
+    font-size: 13px;
+    color: #666666;
+    text-align: center;
+    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+    transition: opacity 0.15s ease;
+    transform: translateZ(0);
+}
+
+.brand-footer:hover {
+    opacity: 1;
+    color: #333333;
+}
+
+/* Success Message - with improved green styling */
+.success {
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(46, 174, 96, 0.9) 0%, rgba(39, 154, 86, 0.9) 100%);
+    border-left: 4px solid #2ecc71;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Success icon with animation */
+.success::before {
+    content: "\2714";
+    color: #ffffff;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 16px;
+    display: inline-block;
+    animation: checkmarkPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    transform-origin: center;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Info Message - with improved contrast */
+.info {
+    color: #000000;
+    background: linear-gradient(135deg, rgba(255, 213, 79, 1) 0%, rgba(255, 196, 0, 1) 100%);
+    border-left: 4px solid #ffa000;
+    text-shadow: none;
+}
+
+/* Info icon with animation */
+.info::before {
+    content: "\2714";
+    color: #2ecc71;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 16px;
+    display: inline-block;
+    animation: checkmarkPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    transform-origin: center;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Error Message - with improved red styling */
+.error {
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.9) 0%, rgba(192, 57, 43, 0.9) 100%);
+    border-left: 4px solid #e74c3c;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Error icon with animation */
+.error::before {
+    content: "\274C";
+    color: #ffffff;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 16px;
+    display: inline-block;
+    animation: shake 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
+    transform-origin: center;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Checkmark animation - enhanced bounce */
+@keyframes checkmarkPop {
+    0% {
+        transform: scale(0) translateZ(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.3) translateZ(0);
+        opacity: 1;
+    }
+    85% {
+        transform: scale(0.9) translateZ(0);
+    }
+    100% {
+        transform: scale(1) translateZ(0);
+    }
+}
+
+/* Enhanced shake animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0) translateZ(0); }
+    20% { transform: translateX(-4px) translateZ(0); }
+    40% { transform: translateX(4px) translateZ(0); }
+    60% { transform: translateX(-3px) translateZ(0); }
+    80% { transform: translateX(3px) translateZ(0); }
+}
+
+/* Enhanced fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px) translateZ(0);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+    }
+}
+
+/* Success state container */
+.state-success .popup-container {
+    background: linear-gradient(135deg, rgba(46, 174, 96, 0.08) 0%, rgba(39, 154, 86, 0.04) 100%);
+}
+
+/* Error state container */
+.state-error .popup-container {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(192, 57, 43, 0.04) 100%);
+}
+
+/* Warning/neutral state container - slightly adjusted */
+.state-warning .popup-container {
+    background: linear-gradient(135deg, rgba(255, 213, 79, 0.08) 0%, rgba(255, 196, 0, 0.04) 100%);
+}
+
+/* Refined Scrollbar styling */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(245, 245, 245, 0.5);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(61, 92, 37, 0.5);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(61, 92, 37, 0.7);
+}
