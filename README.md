@@ -10,6 +10,7 @@ Improved support for YouTube, Google Docs, and other popular sites
 
 Previews cleaned links before copying
 Provides clear explanations (e.g., tracking removed or link already clean)
+
 Key Features
 
 📌 Instantly clean and copy URLs in an easy-to-share format <br>
