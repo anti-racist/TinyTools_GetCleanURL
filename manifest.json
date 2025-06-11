@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Get Clean URL",
-  "version": "1.0",
+  "version": "1.2",
+  "description": "Get a clean URL without tracking parameters with one click. v1.2: Bug fix for Amazon product links.",
   "permissions": [
     "activeTab",
     "clipboardWrite"
   ],
-  
   "background": {
     "service_worker": "background.js"
   },
@@ -22,11 +22,5 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"], 
-      "js": ["popup.js"]
-    }
-  ]
+  }
 }
