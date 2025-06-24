@@ -6,18 +6,8 @@ A lightweight browser extension that strips tracking parameters from URLs, creat
 
 ## What's New
 
-### Version 1.2
-- 🐞 **Bug Fix**: Resolved issue with Amazon product links
-
-### Version 1.1
-- ✨ **Smarter Link Cleaning**
-  - Preserves essential information while removing tracking codes
-  - Improved support for YouTube, Google Docs, and other popular sites
-
-- ✨ **Enhanced User Experience**
-  - Previews cleaned links before copying
-  - Provides clear explanations (e.g., tracking removed or link already clean)
-
+### Version 1.3
+- ✨ **Enhanced User Experience** Added a new utility to remove common tracking parameters 
 ---
 
 ## Key Features

@@ -67,7 +67,10 @@ const trackingParams = {
     ],
     other: [
         'ref', 'referrer', 'source', 'yclid', 'ocid', '_hsenc', '_hsmi',
-        'zanpid', 'icid', 'mpid'
+        'zanpid', 'icid', 'mpid', 'ysclid', 's_kwcid', 'trk', 'trkCampaign', 'trkContact',
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+    'ga_cid', 'pk_campaign', 'pk_kwd', 'mc_cid', 'mc_eid', '_hsenc', '_hsmi', 'vero_conv', 'vero_id',
+    'igshid'
     ]
 };
 
