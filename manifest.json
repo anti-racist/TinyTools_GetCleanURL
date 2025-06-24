@@ -2,8 +2,7 @@
   "manifest_version": 3,
   "name": "Get Clean URL",
   "version": "1.3",
-  "description": "Get a clean URL without tracking parameters with one click. v1.3: Added a new utility to remove common tracking parameters
-",
+  "description": "Get a clean URL without tracking parameters with one click. v1.3: Added a new utility to remove common tracking parameters.",
   "permissions": [
     "activeTab",
     "clipboardWrite"
