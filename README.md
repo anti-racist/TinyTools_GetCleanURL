@@ -6,8 +6,10 @@ A lightweight browser extension that strips tracking parameters from URLs, creat
 
 ## What's New
 
-### Version 1.3
-- ✨ **Enhanced User Experience** Added a new utility to remove common tracking parameters 
+### Version 1.4
+- 🐛 **Bug Fix** Fixed an intermittent "Could not establish connection" error some users saw when opening the popup
+- 🐛 **Bug Fix** Fixed a link-cleaning bug where certain Amazon URLs could be rewritten to an incorrect path
+
 ---
 
 ## Key Features
