@@ -49,7 +49,9 @@ export const amazonDomains = [
     'amazon.nl', 'amazon.se', 'amazon.pl', 'amazon.sg', 'amazon.tr'
 ];
 
-export const essentialAmazonPaths = new Set(['gp', 'product', 'dp', 'stores', 'deals']);
+// A product identifier is only trusted directly after one of these segments:
+// /dp/<ASIN>, /gp/product/<ASIN>, /gp/aw/d/<ASIN>.
+export const productPathMarkers = new Set(['dp', 'product', 'd']);
 
 // Amazon product identifier: ten uppercase alphanumerics.
 export const asinPattern = /^[A-Z0-9]{10}$/;

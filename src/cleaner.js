@@ -7,7 +7,7 @@ import {
     trackingPrefixes,
     trackingHash,
     amazonDomains,
-    essentialAmazonPaths,
+    productPathMarkers,
     asinPattern
 } from './rules.js';
 
@@ -18,22 +18,20 @@ function isAmazonHost(hostname) {
     );
 }
 
-// The product identifier, wherever it sits in the path.
+// Collapse a product URL to its canonical /dp/<ASIN> form.
+//
+// The identifier is only recognised directly after a marker segment such as
+// /dp/ or /gp/product/. Matching the bare pattern anywhere in the path also
+// caught store fronts (/stores/page/A1B2C3D4E5) and wish lists
+// (/hz/wishlist/ls/1A2B3C4D5E) and rewrote them into a different, wrong
+// product link.
 function amazonProductPath(pathParts) {
-    const asin = pathParts.find(part => asinPattern.test(part));
-    return asin ? '/dp/' + asin : null;
-}
-
-// Non-product pages: keep the first three segments, then keep extending only
-// while segments remain contiguous and essential (a gap must stop the run, or
-// the joined path would skip real segments).
-function amazonBrowsePath(pathParts) {
-    const relevant = pathParts.slice(0, 3);
-    for (let i = 3; i < pathParts.length; i++) {
-        if (!essentialAmazonPaths.has(pathParts[i])) break;
-        relevant.push(pathParts[i]);
+    for (let i = 1; i < pathParts.length; i++) {
+        if (productPathMarkers.has(pathParts[i - 1]) && asinPattern.test(pathParts[i])) {
+            return '/dp/' + pathParts[i];
+        }
     }
-    return relevant.length > 0 ? '/' + relevant.join('/') : null;
+    return null;
 }
 
 function isTrackingParam(key, onAmazon) {
@@ -51,8 +49,7 @@ export function cleanUrl(urlString) {
         const onAmazon = isAmazonHost(url.hostname);
 
         if (onAmazon) {
-            const pathParts = url.pathname.split('/').filter(Boolean);
-            const productPath = amazonProductPath(pathParts);
+            const productPath = amazonProductPath(url.pathname.split('/').filter(Boolean));
 
             if (productPath) {
                 if (productPath !== url.pathname) {
@@ -69,17 +66,9 @@ export function cleanUrl(urlString) {
                 }
                 return { url: url.toString(), changed, removedCount };
             }
-
-            const browsePath = amazonBrowsePath(pathParts);
-            if (browsePath && browsePath !== url.pathname) {
-                url.pathname = browsePath;
-                changed = true;
-                removedCount++;
-            }
-
-            if (!url.search && !url.hash) {
-                return { url: url.toString(), changed, removedCount };
-            }
+            // Any other Amazon page keeps its path. Truncating it to the first
+            // few segments dropped real pages, turning /gp/help/customer/
+            // display.html into /gp/help/customer.
         }
 
         if (url.search) {
