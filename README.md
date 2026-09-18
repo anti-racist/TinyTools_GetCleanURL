@@ -8,7 +8,7 @@ A lightweight browser extension that strips tracking parameters from URLs, creat
 
 ### Version 1.5
 - 🐛 **Bug Fix** Restored support for Vivaldi, where the popup had started reporting that no URL was available
-- 🐛 **Bug Fix** Ordinary links are no longer over-cleaned — parameters like `tag`, `ref` and `source` are kept on sites where they carry real meaning, and are still stripped on Amazon
+- 🐛 **Bug Fix** Ordinary links are no longer over-cleaned — parameters that carry real meaning on a page, such as `tag`, `ref` and `source`, are kept instead of stripped. Amazon's own affiliate parameters are still removed on Amazon.
 - 🐛 **Bug Fix** Amazon store fronts, wish lists and help pages are no longer rewritten into the wrong link
 - 🐛 **Bug Fix** Page anchors and in-page links are preserved instead of being dropped
 - ✨ **Under the hood** The cleaning logic now has an automated test suite covering more than 600 URLs
