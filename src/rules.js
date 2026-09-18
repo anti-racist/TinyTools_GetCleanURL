@@ -39,8 +39,6 @@ export const globalTrackingParams = new Set(Object.values(trackingParams).flat()
 // Prefixed families that no explicit list can enumerate.
 export const trackingPrefixes = /^(fb_|pk_|ref_|sc_)/;
 
-// Fragments worth discarding wholesale.
-export const trackingHash = /ref_|utm_|_ref/;
 
 export const amazonDomains = [
     'amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr', 'amazon.it',

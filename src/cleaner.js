@@ -5,7 +5,6 @@ import {
     globalTrackingParams,
     amazonTrackingParams,
     trackingPrefixes,
-    trackingHash,
     amazonDomains,
     productPathMarkers,
     asinPattern
@@ -32,6 +31,32 @@ function amazonProductPath(pathParts) {
         }
     }
     return null;
+}
+
+// Strip tracking keys out of a fragment without discarding the fragment
+// itself. A plain anchor (#ref_section_3) or a hash route (#/dashboard) is a
+// link target, not tracking; v1.4 matched a substring and deleted the lot.
+function cleanFragment(hash, onAmazon) {
+    const raw = hash.slice(1);
+
+    // Hash routes and plain anchors are left exactly as they are.
+    if (raw.startsWith('/') || !raw.includes('=')) return { hash, removed: 0 };
+
+    const kept = new URLSearchParams();
+    let removed = 0;
+
+    for (const [key, value] of new URLSearchParams(raw)) {
+        if (isTrackingParam(key, onAmazon)) {
+            removed++;
+        } else {
+            kept.append(key, value);
+        }
+    }
+
+    if (removed === 0) return { hash, removed: 0 };
+
+    const remaining = kept.toString();
+    return { hash: remaining ? '#' + remaining : '', removed };
 }
 
 function isTrackingParam(key, onAmazon) {
@@ -90,10 +115,13 @@ export function cleanUrl(urlString) {
             }
         }
 
-        if (url.hash && trackingHash.test(url.hash)) {
-            url.hash = '';
-            changed = true;
-            removedCount++;
+        if (url.hash) {
+            const fragment = cleanFragment(url.hash, onAmazon);
+            if (fragment.removed > 0) {
+                url.hash = fragment.hash;
+                changed = true;
+                removedCount += fragment.removed;
+            }
         }
 
         return { url: url.toString(), changed, removedCount };
