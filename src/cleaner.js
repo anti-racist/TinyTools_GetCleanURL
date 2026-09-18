@@ -3,41 +3,30 @@
 
 import {
     globalTrackingParams,
-    amazonTrackingParams,
     trackingPrefixes,
-    amazonTrackingPrefixes,
-    amazonDomains,
-    productPathMarkers,
-    asinPattern
+    siteRuleByDomain
 } from './rules.js';
 
-// Match the host exactly or as a subdomain, never as a substring.
-function isAmazonHost(hostname) {
-    return amazonDomains.some(domain =>
-        hostname === domain || hostname.endsWith('.' + domain)
-    );
-}
-
-// Collapse a product URL to its canonical /dp/<ASIN> form.
-//
-// The identifier is only recognised directly after a marker segment such as
-// /dp/ or /gp/product/. Matching the bare pattern anywhere in the path also
-// caught store fronts (/stores/page/A1B2C3D4E5) and wish lists
-// (/hz/wishlist/ls/1A2B3C4D5E) and rewrote them into a different, wrong
-// product link.
-function amazonProductPath(pathParts) {
-    for (let i = 1; i < pathParts.length; i++) {
-        if (productPathMarkers.has(pathParts[i - 1]) && asinPattern.test(pathParts[i])) {
-            return '/dp/' + pathParts[i];
-        }
+// Find the site rule for a hostname by walking its suffixes:
+// www.amazon.co.uk -> amazon.co.uk. This matches a domain exactly or as a
+// subdomain and never as a substring, and it costs the same whether the table
+// holds one site or a hundred - unlike scanning a list of domains, which costs
+// one comparison per entry.
+function siteRuleFor(hostname) {
+    let candidate = hostname;
+    for (;;) {
+        const rule = siteRuleByDomain.get(candidate);
+        if (rule) return rule;
+        const dot = candidate.indexOf('.');
+        if (dot === -1) return null;
+        candidate = candidate.slice(dot + 1);
     }
-    return null;
 }
 
 // Strip tracking keys out of a fragment without discarding the fragment
 // itself. A plain anchor (#ref_section_3) or a hash route (#/dashboard) is a
 // link target, not tracking; v1.4 matched a substring and deleted the lot.
-function cleanFragment(hash, onAmazon) {
+function cleanFragment(hash, rule) {
     const raw = hash.slice(1);
 
     // Hash routes and plain anchors are left exactly as they are.
@@ -47,7 +36,7 @@ function cleanFragment(hash, onAmazon) {
     let removed = 0;
 
     for (const [key, value] of new URLSearchParams(raw)) {
-        if (isTrackingParam(key, onAmazon)) {
+        if (isTrackingParam(key, rule)) {
             removed++;
         } else {
             kept.append(key, value);
@@ -60,11 +49,12 @@ function cleanFragment(hash, onAmazon) {
     return { hash: remaining ? '#' + remaining : '', removed };
 }
 
-function isTrackingParam(key, onAmazon) {
+// `rule` is the site rule for the URL's host, or null off any known site.
+function isTrackingParam(key, rule) {
     if (globalTrackingParams.has(key)) return true;
     if (key.startsWith('utm_') || trackingPrefixes.test(key)) return true;
-    return onAmazon
-        && (amazonTrackingParams.has(key) || amazonTrackingPrefixes.test(key));
+    if (!rule) return false;
+    return rule.params.has(key) || rule.prefixes.test(key);
 }
 
 export function cleanUrl(urlString) {
@@ -73,18 +63,18 @@ export function cleanUrl(urlString) {
         let changed = false;
         let removedCount = 0;
 
-        const onAmazon = isAmazonHost(url.hostname);
+        const rule = siteRuleFor(url.hostname);
 
-        if (onAmazon) {
-            const productPath = amazonProductPath(url.pathname.split('/').filter(Boolean));
+        if (rule && rule.canonicalPath) {
+            const canonical = rule.canonicalPath(url.pathname.split('/').filter(Boolean));
 
-            if (productPath) {
-                if (productPath !== url.pathname) {
-                    url.pathname = productPath;
+            if (canonical) {
+                if (canonical !== url.pathname) {
+                    url.pathname = canonical;
                     changed = true;
                     removedCount++;
                 }
-                // Product URLs carry nothing useful in query or fragment.
+                // A canonical URL carries nothing useful in query or fragment.
                 if (url.search || url.hash) {
                     url.search = '';
                     url.hash = '';
@@ -93,8 +83,8 @@ export function cleanUrl(urlString) {
                 }
                 return { url: url.toString(), changed, removedCount };
             }
-            // Any other Amazon page keeps its path. Truncating it to the first
-            // few segments dropped real pages, turning /gp/help/customer/
+            // Any other page on the site keeps its path. Truncating it to the
+            // first few segments dropped real pages, turning /gp/help/customer/
             // display.html into /gp/help/customer.
         }
 
@@ -103,7 +93,7 @@ export function cleanUrl(urlString) {
             let removedAny = false;
 
             for (const [key, value] of new URLSearchParams(url.search)) {
-                if (isTrackingParam(key, onAmazon)) {
+                if (isTrackingParam(key, rule)) {
                     removedAny = true;
                     removedCount++;
                 } else {
@@ -118,7 +108,7 @@ export function cleanUrl(urlString) {
         }
 
         if (url.hash) {
-            const fragment = cleanFragment(url.hash, onAmazon);
+            const fragment = cleanFragment(url.hash, rule);
             if (fragment.removed > 0) {
                 url.hash = fragment.hash;
                 changed = true;

@@ -1,14 +1,8 @@
-// Tracking-parameter and domain rules. Data only - no logic lives here.
-
-// Amazon's own affiliate and session parameters. Several of these - `tag`,
-// `ref`, `th`, `psc`, `camp`, `creative`, `smid` - are ordinary query
-// parameters on other sites, so they are only ever stripped on Amazon.
-export const amazonTrackingParams = new Set([
-    'tag', 'ref', 'ref_', 'refRID', 'pd_rd_r', 'pd_rd_w', 'pd_rd_wg',
-    'pf_rd_p', 'pf_rd_r', 'pf_rd_s', 'pf_rd_t', 'pf_rd_i', 'pf_rd_m',
-    '_encoding', 'smid', 'th', 'psc', 'linkId', 'linkCode', 'camp',
-    'creative', 'creativeASIN', 'ascsubtag', 'asc_refurl', 'asc_campaign'
-]);
+// Tracking rules.
+//
+// Global rules apply on every site. Site-specific rules live in a table keyed
+// by registrable domain, so adding a site means adding a row rather than
+// threading another flag through the cleaner.
 
 // Stripped everywhere. Deliberately excludes `ref`, `referrer` and `source`:
 // all three carry real meaning on common sites (a git ref, a document source)
@@ -37,14 +31,28 @@ export const trackingParams = {
 export const globalTrackingParams = new Set(Object.values(trackingParams).flat());
 
 // Prefixed families that no explicit list can enumerate. Stripped everywhere.
+// Deliberately one alternation rather than several patterns: a single regex
+// costs the same whatever it holds, while separate regexes cost one test each.
 export const trackingPrefixes = /^(fb_|pk_)/;
 
-// Amazon's prefixed families, scoped for the same reason as the list above:
-// `ref_` and `sc_` are Amazon conventions, and stripping them off-Amazon
-// removes parameters that mean something else there.
-export const amazonTrackingPrefixes = /^(ref_|sc_)/;
+// --- Amazon -----------------------------------------------------------------
 
-export const amazonDomains = [
+// Amazon's own affiliate and session parameters. Several of these - `tag`,
+// `ref`, `th`, `psc`, `camp`, `creative`, `smid` - are ordinary query
+// parameters on other sites, so they are only ever stripped on Amazon.
+const amazonParams = new Set([
+    'tag', 'ref', 'ref_', 'refRID', 'pd_rd_r', 'pd_rd_w', 'pd_rd_wg',
+    'pf_rd_p', 'pf_rd_r', 'pf_rd_s', 'pf_rd_t', 'pf_rd_i', 'pf_rd_m',
+    '_encoding', 'smid', 'th', 'psc', 'linkId', 'linkCode', 'camp',
+    'creative', 'creativeASIN', 'ascsubtag', 'asc_refurl', 'asc_campaign'
+]);
+
+// Scoped for the same reason as the list above: `ref_` and `sc_` are Amazon
+// conventions, and stripping them off-Amazon removes parameters that mean
+// something else there.
+const amazonPrefixes = /^(ref_|sc_)/;
+
+const amazonDomains = [
     'amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr', 'amazon.it',
     'amazon.es', 'amazon.ca', 'amazon.com.mx', 'amazon.com.br', 'amazon.cn',
     'amazon.co.jp', 'amazon.in', 'amazon.com.au', 'amazon.ae', 'amazon.sa',
@@ -53,7 +61,53 @@ export const amazonDomains = [
 
 // A product identifier is only trusted directly after one of these segments:
 // /dp/<ASIN>, /gp/product/<ASIN>, /gp/aw/d/<ASIN>.
-export const productPathMarkers = new Set(['dp', 'product', 'd']);
+const productPathMarkers = new Set(['dp', 'product', 'd']);
 
 // Amazon product identifier: ten uppercase alphanumerics.
-export const asinPattern = /^[A-Z0-9]{10}$/;
+const asinPattern = /^[A-Z0-9]{10}$/;
+
+// Collapse a product URL to its canonical /dp/<ASIN> form.
+//
+// The identifier is only recognised directly after a marker segment. Matching
+// the bare pattern anywhere in the path also caught store fronts
+// (/stores/page/A1B2C3D4E5) and wish lists (/hz/wishlist/ls/1A2B3C4D5E) and
+// rewrote them into a different, wrong product link.
+function amazonProductPath(pathParts) {
+    for (let i = 1; i < pathParts.length; i++) {
+        if (productPathMarkers.has(pathParts[i - 1]) && asinPattern.test(pathParts[i])) {
+            return '/dp/' + pathParts[i];
+        }
+    }
+    return null;
+}
+
+// --- The site table ---------------------------------------------------------
+
+// Each row carries the parameters and prefixes that count as tracking only on
+// that site, and optionally a canonicalPath().
+//
+// canonicalPath(pathParts) returning a path means this URL has one true form
+// and everything else on it - query and fragment alike - is noise. Returning
+// null means the page keeps its path and is cleaned like any other.
+const siteRules = [
+    {
+        id: 'amazon',
+        domains: amazonDomains,
+        params: amazonParams,
+        prefixes: amazonPrefixes,
+        canonicalPath: amazonProductPath
+    }
+];
+
+const NO_PARAMS = new Set();
+const NEVER = /(?!)/;
+
+// domain -> rule. Several domains share one rule object, and the lookup in
+// cleaner.js walks a hostname's suffixes against this map, so the cost does
+// not grow with the number of sites in the table.
+export const siteRuleByDomain = new Map();
+for (const rule of siteRules) {
+    if (!rule.params) rule.params = NO_PARAMS;
+    if (!rule.prefixes) rule.prefixes = NEVER;
+    for (const domain of rule.domains) siteRuleByDomain.set(domain, rule);
+}
