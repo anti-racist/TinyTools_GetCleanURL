@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Get Clean URL",
-  "version": "1.5",
+  "version": "2.0",
   "description": "Get a clean URL without tracking parameters with one click.",
   "permissions": [
     "activeTab",
