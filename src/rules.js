@@ -39,7 +39,6 @@ export const globalTrackingParams = new Set(Object.values(trackingParams).flat()
 // Prefixed families that no explicit list can enumerate.
 export const trackingPrefixes = /^(fb_|pk_|ref_|sc_)/;
 
-
 export const amazonDomains = [
     'amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr', 'amazon.it',
     'amazon.es', 'amazon.ca', 'amazon.com.mx', 'amazon.com.br', 'amazon.cn',

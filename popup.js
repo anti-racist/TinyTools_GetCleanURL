@@ -47,10 +47,23 @@ async function main() {
     }
 }
 
+// Last line of defence: the popup must never sit on "Getting URL..." with no
+// explanation, whatever goes wrong underneath.
+function run() {
+    return main().catch(error => {
+        console.error('Unexpected popup failure:', error);
+        const messageElement = document.getElementById('message');
+        if (messageElement) {
+            messageElement.className = 'error';
+            messageElement.textContent = 'Something went wrong. Please try again.';
+        }
+    });
+}
+
 // Module scripts are deferred, so the DOM is normally parsed by now; the guard
 // keeps this correct if that ever stops being true.
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', run);
 } else {
-    main();
+    run();
 }

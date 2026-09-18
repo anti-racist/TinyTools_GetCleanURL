@@ -74,8 +74,8 @@ function copyViaSelection(text) {
     field.style.top = '-1000px';
     field.style.opacity = '0';
 
-    document.body.appendChild(field);
     try {
+        document.body.appendChild(field);
         field.select();
         field.setSelectionRange(0, text.length);
         return document.execCommand('copy');
