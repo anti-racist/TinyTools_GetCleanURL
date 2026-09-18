@@ -2,7 +2,8 @@
 // unchanged in the popup and under `node --test`.
 
 import {
-    allTrackingParams,
+    globalTrackingParams,
+    amazonTrackingParams,
     trackingPrefixes,
     trackingHash,
     amazonDomains,
@@ -35,10 +36,10 @@ function amazonBrowsePath(pathParts) {
     return relevant.length > 0 ? '/' + relevant.join('/') : null;
 }
 
-function isTrackingParam(key) {
-    return allTrackingParams.has(key)
-        || key.startsWith('utm_')
-        || trackingPrefixes.test(key);
+function isTrackingParam(key, onAmazon) {
+    if (globalTrackingParams.has(key)) return true;
+    if (onAmazon && amazonTrackingParams.has(key)) return true;
+    return key.startsWith('utm_') || trackingPrefixes.test(key);
 }
 
 export function cleanUrl(urlString) {
@@ -47,7 +48,9 @@ export function cleanUrl(urlString) {
         let changed = false;
         let removedCount = 0;
 
-        if (isAmazonHost(url.hostname)) {
+        const onAmazon = isAmazonHost(url.hostname);
+
+        if (onAmazon) {
             const pathParts = url.pathname.split('/').filter(Boolean);
             const productPath = amazonProductPath(pathParts);
 
@@ -84,7 +87,7 @@ export function cleanUrl(urlString) {
             let removedAny = false;
 
             for (const [key, value] of new URLSearchParams(url.search)) {
-                if (isTrackingParam(key)) {
+                if (isTrackingParam(key, onAmazon)) {
                     removedAny = true;
                     removedCount++;
                 } else {
