@@ -5,6 +5,7 @@ import {
     globalTrackingParams,
     amazonTrackingParams,
     trackingPrefixes,
+    amazonTrackingPrefixes,
     amazonDomains,
     productPathMarkers,
     asinPattern
@@ -61,8 +62,9 @@ function cleanFragment(hash, onAmazon) {
 
 function isTrackingParam(key, onAmazon) {
     if (globalTrackingParams.has(key)) return true;
-    if (onAmazon && amazonTrackingParams.has(key)) return true;
-    return key.startsWith('utm_') || trackingPrefixes.test(key);
+    if (key.startsWith('utm_') || trackingPrefixes.test(key)) return true;
+    return onAmazon
+        && (amazonTrackingParams.has(key) || amazonTrackingPrefixes.test(key));
 }
 
 export function cleanUrl(urlString) {

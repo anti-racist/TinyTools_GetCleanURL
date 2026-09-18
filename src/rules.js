@@ -36,8 +36,13 @@ export const trackingParams = {
 // Flattened once at module load rather than rebuilt on every call.
 export const globalTrackingParams = new Set(Object.values(trackingParams).flat());
 
-// Prefixed families that no explicit list can enumerate.
-export const trackingPrefixes = /^(fb_|pk_|ref_|sc_)/;
+// Prefixed families that no explicit list can enumerate. Stripped everywhere.
+export const trackingPrefixes = /^(fb_|pk_)/;
+
+// Amazon's prefixed families, scoped for the same reason as the list above:
+// `ref_` and `sc_` are Amazon conventions, and stripping them off-Amazon
+// removes parameters that mean something else there.
+export const amazonTrackingPrefixes = /^(ref_|sc_)/;
 
 export const amazonDomains = [
     'amazon.com', 'amazon.co.uk', 'amazon.de', 'amazon.fr', 'amazon.it',
