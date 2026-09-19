@@ -66,6 +66,16 @@ export function isShareable(urlString) {
     }
 }
 
+// A local file. Shareable on its own - it means something on the machine it
+// came from - but deliberately kept out of a bulk copy; see src/batch.js.
+export function isLocalFile(urlString) {
+    try {
+        return new URL(urlString).protocol === 'file:';
+    } catch {
+        return false;
+    }
+}
+
 // How many parameters a query or fragment string holds. Used where a whole
 // query is discarded at once: counting the operation instead reported "2
 // tracking parameters removed" for an Amazon product URL no matter whether it

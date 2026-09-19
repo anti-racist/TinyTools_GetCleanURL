@@ -4,7 +4,7 @@
 // call, so the whole of the batch logic is testable without a browser. The
 // browser layer's only job is to hand it the tabs.
 
-import { cleanUrl, isShareable } from './cleaner.js';
+import { cleanUrl, isShareable, isLocalFile } from './cleaner.js';
 
 // Tabs in the order they sit in the window, one clean URL per line.
 //
@@ -23,7 +23,13 @@ export function buildTabList(tabs) {
         // Browser pages, extension pages and anything unparseable. Counted
         // rather than dropped silently, so the total the user is told about
         // adds up to the number of tabs they can see.
-        if (typeof url !== 'string' || !isShareable(url)) {
+        //
+        // Local files are skipped here although a single copy keeps them.
+        // The two actions differ: copying one file:// URL is a deliberate act
+        // on a page you are looking at, while a batch is a sweep that tends to
+        // be pasted somewhere else whole - and a local path reveals your
+        // directory layout while being useless to whoever receives it.
+        if (typeof url !== 'string' || !isShareable(url) || isLocalFile(url)) {
             skipped++;
             continue;
         }
