@@ -49,6 +49,18 @@ function cleanFragment(hash, rule) {
     return { hash: remaining ? '#' + remaining : '', removed };
 }
 
+// How many parameters a query or fragment string holds. Used where a whole
+// query is discarded at once: counting the operation instead reported "2
+// tracking parameters removed" for an Amazon product URL no matter whether it
+// carried two or twenty.
+function countParams(raw) {
+    const text = raw.startsWith('?') ? raw.slice(1) : raw;
+    if (!text || text.startsWith('/') || !text.includes('=')) return 0;
+    let n = 0;
+    for (const _ of new URLSearchParams(text)) n++;
+    return n;
+}
+
 // `rule` is the site rule for the URL's host, or null off any known site.
 //
 // Matching is case-insensitive: sites really do mint ?CMP= and ?ICID=, and a
@@ -76,16 +88,20 @@ export function cleanUrl(urlString) {
 
             if (canonical) {
                 if (canonical !== url.pathname) {
+                    // The segments being dropped are the tracking ones -
+                    // /Some-Product/.../ref=sr_1_3 - so they count as one
+                    // thing removed.
                     url.pathname = canonical;
                     changed = true;
                     removedCount++;
                 }
                 // A canonical URL carries nothing useful in query or fragment.
                 if (url.search || url.hash) {
+                    removedCount += countParams(url.search)
+                                  + countParams(url.hash.slice(1));
                     url.search = '';
                     url.hash = '';
                     changed = true;
-                    removedCount++;
                 }
                 return { url: url.toString(), changed, removedCount };
             }
