@@ -100,7 +100,14 @@ function amazonProductPath(pathParts) {
 // sites, so each is scoped to the site that mints it. Stripping any of them
 // globally would rewrite links rather than clean them.
 
-const youtubeParams = new Set(['si', 'pp']);
+// `si` only. It is a different value every time the same video is shared, so
+// it can only be identifying the share rather than describing the video.
+//
+// `pp` was here and has been taken out: it is a base64 blob that very probably
+// does not affect playback, and "very probably" is not evidence. A rule set is
+// worth what its weakest entry is worth, and one entry nobody can justify
+// discounts all of them.
+const youtubeParams = new Set(['si']);
 
 // `t` is deliberately absent above. On YouTube it is the playback timestamp
 // (?t=43s), so removing it would break a "start at 0:43" link - while on X the
