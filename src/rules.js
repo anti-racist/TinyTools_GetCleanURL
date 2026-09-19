@@ -10,15 +10,19 @@
 export const trackingParams = {
     google: [
         'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-        'gclid', 'gclsrc', 'dclid'
+        'gclid', 'gclsrc', 'dclid',
+        // gbraid and wbraid are what Google Ads issues where gclid cannot be
+        // set; gad_source and srsltid ride along on ad and Shopping clicks.
+        'gbraid', 'wbraid', 'gad_source', 'srsltid'
     ],
     microsoft: ['msclkid'],
     social: [
-        'fbclid', 'igshid', 'cmpid', 'twclid', 'tblci'
+        'fbclid', 'igshid', 'cmpid', 'twclid', 'tblci',
+        'ttclid', 'li_fat_id', 'epik', 'rdt_cid'
     ],
     email: [
         'vero_id', 'email_id', 'email_campaign', 'email_source', 'email_placement',
-        'mc_cid', 'mc_eid'
+        'mc_cid', 'mc_eid', 'mkt_tok'
     ],
     other: [
         'yclid', 'ocid', '_hsenc', '_hsmi',
@@ -33,7 +37,10 @@ export const globalTrackingParams = new Set(Object.values(trackingParams).flat()
 // Prefixed families that no explicit list can enumerate. Stripped everywhere.
 // Deliberately one alternation rather than several patterns: a single regex
 // costs the same whatever it holds, while separate regexes cost one test each.
-export const trackingPrefixes = /^(fb_|pk_)/;
+// `mtm_` is Matomo's current name for the family `pk_` used to carry; `hsa_`
+// is HubSpot's ads family, a dozen keys that no explicit list would keep up
+// with.
+export const trackingPrefixes = /^(fb_|pk_|hsa_|mtm_)/;
 
 // --- Amazon -----------------------------------------------------------------
 
