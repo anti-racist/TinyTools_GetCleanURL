@@ -252,3 +252,40 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(61, 92, 37, 0.7);
 }
+
+/* Secondary action - deliberately quieter than the copy that happens on its
+   own above it. The label says what it does in plain words because that is
+   also what explains the permission Chrome asks for the first time it is
+   pressed: a prompt that follows "Copy all open tabs" reads as obvious,
+   where one that follows "Batch mode" reads as unexplained. */
+#copy-all {
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444444;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.15s ease;
+    transform: translateZ(0);
+}
+
+#copy-all:hover {
+    color: #111111;
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+#copy-all:active {
+    transform: translateY(0) translateZ(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#copy-all:focus-visible {
+    outline: 2px solid #ffa000;
+    outline-offset: 2px;
+}

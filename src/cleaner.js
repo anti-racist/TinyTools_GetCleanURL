@@ -49,6 +49,23 @@ function cleanFragment(hash, rule) {
     return { hash: remaining ? '#' + remaining : '', removed };
 }
 
+// Schemes that can carry a link worth sharing. Everything else a tab can hold
+// is browser furniture - chrome://, edge://, vivaldi://, about:, an extension
+// page - whose address is of no use to anyone it is sent to.
+//
+// An allowlist rather than a list of browser schemes to block: that list
+// differs per browser and anything missing from it would leave the bug in
+// place there.
+const SHAREABLE_SCHEMES = new Set(['http:', 'https:', 'file:']);
+
+export function isShareable(urlString) {
+    try {
+        return SHAREABLE_SCHEMES.has(new URL(urlString).protocol);
+    } catch {
+        return false;
+    }
+}
+
 // How many parameters a query or fragment string holds. Used where a whole
 // query is discarded at once: counting the operation instead reported "2
 // tracking parameters removed" for an Amazon product URL no matter whether it

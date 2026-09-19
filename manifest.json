@@ -7,6 +7,9 @@
     "activeTab",
     "clipboardWrite"
   ],
+  "optional_permissions": [
+    "tabs"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

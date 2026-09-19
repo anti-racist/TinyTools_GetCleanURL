@@ -106,3 +106,45 @@ export async function copyToClipboard(text, retryCount = 0) {
         return false;
     }
 }
+
+// Every tab in every window.
+//
+// Deliberately unfiltered: `currentWindow` is what resolves to Vivaldi's own
+// UI window when the query runs from inside the popup, which is the whole
+// reason getActiveTab() above needs its fallback chain. Asking for all tabs
+// never has to resolve a window at all, so it cannot go wrong that way.
+//
+// Without the `tabs` permission this still resolves, but Chrome strips `url`
+// from every entry - so the caller must hold the permission before it means
+// anything.
+export function getAllTabs() {
+    return queryTabs({});
+}
+
+function permissionsApi() {
+    return (typeof chrome !== 'undefined' && chrome.permissions) || null;
+}
+
+// Resolves false rather than rejecting: a popup that cannot ask for a
+// permission should quietly do nothing, not break.
+//
+// Called directly from the click handler, before anything is awaited. Chrome
+// only honours permissions.request() inside the user gesture that triggered
+// it, and awaiting any other API first is enough to lose it. Asking when the
+// permission is already held is free - it resolves true without prompting -
+// so there is nothing to check beforehand.
+export function requestTabsPermission() {
+    return new Promise(resolve => {
+        const api = permissionsApi();
+        if (!api || !api.request) return resolve(false);
+        try {
+            api.request({ permissions: ['tabs'] }, granted => {
+                if (chrome.runtime && chrome.runtime.lastError) return resolve(false);
+                resolve(granted === true);
+            });
+        } catch (error) {
+            console.warn('permissions.request threw:', error);
+            resolve(false);
+        }
+    });
+}

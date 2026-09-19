@@ -1,43 +1,23 @@
 // Popup entry point: wire the cleaner, the browser layer and the UI together.
 
-import { cleanUrl } from './src/cleaner.js';
-import { getActiveTab, copyToClipboard } from './src/browser.js';
+import { cleanUrl, isShareable } from './src/cleaner.js';
+import { buildTabList } from './src/batch.js';
+import {
+    getActiveTab, getAllTabs, copyToClipboard, requestTabsPermission
+} from './src/browser.js';
 import { createRenderer } from './src/ui.js';
 
-// Schemes that can carry a link worth sharing. Everything else a tab can hold
-// is browser furniture - chrome://, edge://, vivaldi://, about:, an extension
-// page - whose address is of no use to anyone it is sent to.
-//
-// An allowlist rather than a list of browser schemes to block: that list
-// differs per browser and anything missing from it would leave the bug in
-// place there. v1.4 and v1.5 copied whatever the tab held, so opening the
-// popup on a start page quietly overwrote the clipboard with an internal URL
-// and reported "URL already clean".
-const SHAREABLE_SCHEMES = new Set(['http:', 'https:', 'file:']);
-
-function isShareable(urlString) {
-    try {
-        return SHAREABLE_SCHEMES.has(new URL(urlString).protocol);
-    } catch {
-        return false;
-    }
-}
-
-async function main() {
-    const { show } = createRenderer(
-        document.getElementById('url-display'),
-        document.getElementById('message')
-    );
-
-    show({ kind: 'loading' });
-
+// The automatic path: whatever tab the popup was opened over.
+async function copyCurrentTab(show) {
     const tab = await getActiveTab();
     if (!tab || !tab.url) {
         show({ kind: 'no-tab' });
         return;
     }
 
-    // Checked before cleaning, and before the clipboard is touched at all.
+    // Before cleaning, and before the clipboard is touched at all. v1.4 and
+    // v1.5 copied whatever the tab held, so opening the popup on a browser
+    // start page quietly replaced whatever the user already had.
     if (!isShareable(tab.url)) {
         show({ kind: 'not-shareable' });
         return;
@@ -60,6 +40,66 @@ async function main() {
     show(cleaned.changed
         ? { kind: 'cleaned', url: cleaned.url, removed: cleaned.removedCount }
         : { kind: 'already-clean', url: cleaned.url });
+}
+
+// The button. `granted` is resolved by the caller inside the click's own user
+// gesture, because Chrome will not honour permissions.request() outside it.
+async function copyAllTabs(granted, show, restore) {
+    if (!await granted) {
+        // Declined. Say nothing about it and put back what was on screen
+        // before the click: nagging is what makes an extension feel pushy.
+        restore();
+        return;
+    }
+
+    const list = buildTabList(await getAllTabs());
+
+    if (list.copied === 0) {
+        show({ kind: 'batch-empty' });
+        return;
+    }
+    if (!await copyToClipboard(list.text)) {
+        show({ kind: 'batch-copy-failed' });
+        return;
+    }
+
+    show({
+        kind: 'batch-copied',
+        copied: list.copied,
+        skipped: list.skipped,
+        merged: list.merged
+    });
+}
+
+async function main() {
+    const renderer = createRenderer(
+        document.getElementById('url-display'),
+        document.getElementById('message')
+    );
+
+    let current = { kind: 'loading' };
+    const show = state => { current = state; renderer.show(state); };
+
+    show({ kind: 'loading' });
+
+    const button = document.getElementById('copy-all');
+    if (button) {
+        button.addEventListener('click', () => {
+            // Asked for first and synchronously: any await before this loses
+            // the user gesture. It resolves true without prompting when the
+            // permission is already held, so there is nothing to check first.
+            const granted = requestTabsPermission();
+            const before = current;
+            // The browser ignores what a listener returns; the tests await it.
+            return copyAllTabs(granted, show, () => renderer.show(before))
+                .catch(error => {
+                    console.error('Copy all tabs failed:', error);
+                    show({ kind: 'unexpected' });
+                });
+        });
+    }
+
+    await copyCurrentTab(show);
 }
 
 // Last line of defence: the popup must never sit on "Getting URL..." with no
