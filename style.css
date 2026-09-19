@@ -41,6 +41,9 @@ body {
     border-radius: 10px;
     margin: 0 auto 16px auto;
     word-break: break-all;
+    /* A batch puts one URL per line in here; a single URL has no newlines,
+       so nothing about the existing display changes. */
+    white-space: pre-wrap;
     font-size: 14px;
     line-height: 1.5;
     color: #333333;

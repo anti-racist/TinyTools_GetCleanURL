@@ -65,6 +65,7 @@ async function copyAllTabs(granted, show, restore) {
 
     show({
         kind: 'batch-copied',
+        text: list.text,
         copied: list.copied,
         skipped: list.skipped,
         merged: list.merged

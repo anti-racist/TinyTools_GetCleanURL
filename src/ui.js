@@ -8,13 +8,19 @@
 
 const count = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 
-// The big line at the top: a URL, or a short label standing in for one.
+// The box at the top says what is on the clipboard now - which is what it has
+// always said, since v1.4 put the cleaned URL there. So a batch shows the
+// whole list: leaving the previous line up produced "Nothing to copy" sitting
+// directly above "Copied 4 links". The box scrolls, and a list you can read
+// back is worth more than a promise that it worked.
 function heading(state) {
     switch (state.kind) {
         case 'loading':       return 'Getting URL...';
         case 'not-shareable': return 'Nothing to copy';
         case 'no-tab':        return 'No URL available';
         case 'invalid-url':   return 'Invalid URL';
+        case 'batch-copied':  return state.text ?? null;
+        case 'batch-empty':   return 'Nothing to copy';
         default:              return state.url ?? null;   // null: leave it alone
     }
 }
@@ -103,8 +109,12 @@ export function createRenderer(urlDisplayElement, messageElement) {
     function show(state) {
         const head = heading(state);
         if (head !== null && head !== undefined) {
+            // A single long URL is trimmed so it cannot push the popup around;
+            // a list is left whole, because the box scrolls and the point of
+            // showing it is that every line can be read back.
+            const multiline = head.includes('\n');
             urlDisplayElement.textContent =
-                head.length > 300 ? head.substring(0, 297) + '...' : head;
+                (!multiline && head.length > 300) ? head.substring(0, 297) + '...' : head;
             urlDisplayElement.title = head;
         }
 
