@@ -1,62 +1,121 @@
 // Popup rendering. Pure DOM work - no chrome.* calls, no URL logic.
+//
+// popup.js hands this module a state and nothing else; every word the user
+// reads is decided here. It used to be handed a finished sentence and then
+// take it apart again with a regular expression, which split the wording
+// across two modules and left one branch ignoring its own argument - so
+// "(No changes)" had never once reached the screen.
+
+const count = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`;
+
+// The big line at the top: a URL, or a short label standing in for one.
+function heading(state) {
+    switch (state.kind) {
+        case 'loading':       return 'Getting URL...';
+        case 'not-shareable': return 'Nothing to copy';
+        case 'no-tab':        return 'No URL available';
+        case 'invalid-url':   return 'Invalid URL';
+        default:              return state.url ?? null;   // null: leave it alone
+    }
+}
+
+// The message: a main line, and a second line that is dropped when null.
+function lines(state) {
+    switch (state.kind) {
+        case 'loading':
+            return null;
+        case 'cleaned':
+            return ['Copied', `${count(state.removed, 'tracker')} removed`];
+        case 'already-clean':
+            return ['Copied', 'Already clean'];
+        case 'not-shareable':
+            return ['Nothing to copy', "Browser pages can't be shared"];
+        case 'no-tab':
+            return ["Can't read this tab", 'Try reloading the page'];
+        case 'invalid-url':
+            return ["This URL isn't valid", null];
+        case 'copy-failed':
+        case 'batch-copy-failed':
+            return ["Couldn't copy", 'Check clipboard permissions'];
+        case 'batch-copied':
+            return [`Copied ${count(state.copied, 'link')}`, batchDetail(state)];
+        case 'batch-empty':
+            return ['Nothing to copy', 'No open tab has a link to share'];
+        default:
+            return ['Something went wrong', 'Please try again'];
+    }
+}
+
+// Zero terms are left out rather than printed as "0 skipped".
+function batchDetail({ skipped = 0, merged = 0 }) {
+    const parts = [];
+    if (skipped) parts.push(`${skipped} skipped`);
+    if (merged) parts.push(`${count(merged, 'duplicate')} merged`);
+    return parts.length ? parts.join(' · ') : null;
+}
+
+function tone(kind) {
+    switch (kind) {
+        case 'cleaned':
+        case 'batch-copied':
+            return 'success';
+        case 'already-clean':
+        case 'not-shareable':
+        case 'batch-empty':
+            return 'info';
+        case 'loading':
+            return '';
+        default:
+            return 'error';
+    }
+}
 
 export function createRenderer(urlDisplayElement, messageElement) {
-    function displayMessage(text, type) {
+    function paint(main, sub, className) {
         messageElement.innerHTML = '';
-        messageElement.className = type;
+        messageElement.className = className;
 
-        if (type === 'info') {
-            const textContainer = document.createElement('div');
-            textContainer.className = 'message-text';
+        const container = document.createElement('div');
+        container.className = className === 'error' ? 'message-text error-message' : 'message-text';
 
-            const mainText = document.createElement('div');
-            mainText.textContent = 'Copied: URL already clean';
-
-            textContainer.appendChild(mainText);
-            messageElement.appendChild(textContainer);
-        } else if (type === 'success' && text.includes('(')) {
-            const textContainer = document.createElement('div');
-            textContainer.className = 'message-text';
-
-            const parts = text.split(/(\([^)]+\))/);
-
-            const mainText = document.createElement('div');
-            mainText.textContent = parts[0].trim();
-
-            const subText = document.createElement('div');
-            subText.textContent = parts[1];
-            subText.style.opacity = '0.9';
-
-            textContainer.appendChild(mainText);
-            textContainer.appendChild(subText);
-            messageElement.appendChild(textContainer);
-        } else if (type === 'error') {
-            const textContainer = document.createElement('div');
-            textContainer.className = 'message-text error-message';
-
-            const errorIcon = document.createElement('span');
-            errorIcon.textContent = '⚠️';
-            errorIcon.className = 'error-icon';
-
-            const errorText = document.createElement('span');
-            errorText.textContent = text;
-
-            textContainer.appendChild(errorIcon);
-            textContainer.appendChild(errorText);
-            messageElement.appendChild(textContainer);
-        } else {
-            messageElement.textContent = text;
+        // The error shape keeps its own icon span, as it has since v1.4.
+        if (className === 'error') {
+            const icon = document.createElement('span');
+            icon.textContent = '⚠️';
+            icon.className = 'error-icon';
+            container.appendChild(icon);
         }
+
+        const mainLine = document.createElement(className === 'error' ? 'span' : 'div');
+        mainLine.textContent = main;
+        container.appendChild(mainLine);
+
+        if (sub) {
+            const subLine = document.createElement('div');
+            subLine.textContent = sub;
+            subLine.style.opacity = '0.9';
+            container.appendChild(subLine);
+        }
+
+        messageElement.appendChild(container);
     }
 
-    function displayUrl(url) {
-        urlDisplayElement.textContent = url.length > 300 ? url.substring(0, 297) + '...' : url;
-        urlDisplayElement.title = url;
+    function show(state) {
+        const head = heading(state);
+        if (head !== null && head !== undefined) {
+            urlDisplayElement.textContent =
+                head.length > 300 ? head.substring(0, 297) + '...' : head;
+            urlDisplayElement.title = head;
+        }
+
+        const text = lines(state);
+        if (text === null) {
+            messageElement.innerHTML = '';
+            messageElement.className = '';
+            return;
+        }
+        paint(text[0], text[1], tone(state.kind));
     }
 
-    function displayStatus(text) {
-        urlDisplayElement.textContent = text;
-    }
-
-    return { displayMessage, displayUrl, displayStatus };
+    return { show };
 }

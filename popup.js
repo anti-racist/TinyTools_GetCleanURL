@@ -4,18 +4,42 @@ import { cleanUrl } from './src/cleaner.js';
 import { getActiveTab, copyToClipboard } from './src/browser.js';
 import { createRenderer } from './src/ui.js';
 
+// Schemes that can carry a link worth sharing. Everything else a tab can hold
+// is browser furniture - chrome://, edge://, vivaldi://, about:, an extension
+// page - whose address is of no use to anyone it is sent to.
+//
+// An allowlist rather than a list of browser schemes to block: that list
+// differs per browser and anything missing from it would leave the bug in
+// place there. v1.4 and v1.5 copied whatever the tab held, so opening the
+// popup on a start page quietly overwrote the clipboard with an internal URL
+// and reported "URL already clean".
+const SHAREABLE_SCHEMES = new Set(['http:', 'https:', 'file:']);
+
+function isShareable(urlString) {
+    try {
+        return SHAREABLE_SCHEMES.has(new URL(urlString).protocol);
+    } catch {
+        return false;
+    }
+}
+
 async function main() {
-    const { displayMessage, displayUrl, displayStatus } = createRenderer(
+    const { show } = createRenderer(
         document.getElementById('url-display'),
         document.getElementById('message')
     );
 
-    displayStatus('Getting URL...');
+    show({ kind: 'loading' });
 
     const tab = await getActiveTab();
     if (!tab || !tab.url) {
-        displayStatus('No URL available');
-        displayMessage('No valid URL found. Try reloading the page.', 'error');
+        show({ kind: 'no-tab' });
+        return;
+    }
+
+    // Checked before cleaning, and before the clipboard is touched at all.
+    if (!isShareable(tab.url)) {
+        show({ kind: 'not-shareable' });
         return;
     }
 
@@ -24,27 +48,18 @@ async function main() {
         cleaned = cleanUrl(tab.url);
     } catch (error) {
         console.error('Error cleaning URL:', error);
-        displayStatus('Invalid URL');
-        displayMessage('The URL is not valid. Please try again.', 'error');
+        show({ kind: 'invalid-url' });
         return;
     }
-
-    displayUrl(cleaned.url);
 
     if (!await copyToClipboard(cleaned.url)) {
-        displayMessage('Copy failed! Please check browser permissions and try again.', 'error');
+        show({ kind: 'copy-failed', url: cleaned.url });
         return;
     }
 
-    if (cleaned.changed) {
-        const plural = cleaned.removedCount !== 1 ? 's' : '';
-        displayMessage(
-            `Copied: URL cleaned (${cleaned.removedCount} tracking parameter${plural} removed)`,
-            'success'
-        );
-    } else {
-        displayMessage('Copied: URL already clean (No changes)', 'info');
-    }
+    show(cleaned.changed
+        ? { kind: 'cleaned', url: cleaned.url, removed: cleaned.removedCount }
+        : { kind: 'already-clean', url: cleaned.url });
 }
 
 // Last line of defence: the popup must never sit on "Getting URL..." with no
