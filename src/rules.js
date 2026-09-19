@@ -119,6 +119,22 @@ const twitterParams = new Set(['s', 't', 'ref_src', 'ref_url']);
 
 const facebookParams = new Set(['mibextid']);
 
+// Bing puts nine parameters beside the query. Only these two are taken:
+//
+//   cvid   a GUID identifying the search session. Results come from `q`, and
+//          the page is unchanged without it.
+//   FORM   which entry point the search came from - QBRE is the search box.
+//          Pure attribution.
+//
+// The rest - qs, pq, sk, sc, sp, ghc, lq - are left alone. Several look like
+// telemetry as well, and `pq` even carries what was typed before autocomplete
+// finished, but what any of them do to the page is a guess, and guessing is
+// how a link gets broken rather than cleaned.
+//
+// Scoped to Bing, FORM especially: matching folds case, so a global rule
+// would take `form=` off every site that has one.
+const bingParams = new Set(['cvid', 'FORM']);
+
 // --- The site table ---------------------------------------------------------
 
 // Each row carries the parameters and prefixes that count as tracking only on
@@ -139,7 +155,8 @@ const siteRules = [
     { id: 'spotify',   domains: ['spotify.com'],             params: spotifyParams },
     { id: 'instagram', domains: ['instagram.com'],           params: instagramParams },
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
-    { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams }
+    { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
+    { id: 'bing',      domains: ['bing.com'],                params: bingParams }
 ];
 
 const NO_PARAMS = new Set();
