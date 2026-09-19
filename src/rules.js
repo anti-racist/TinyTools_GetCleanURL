@@ -81,6 +81,32 @@ function amazonProductPath(pathParts) {
     return null;
 }
 
+// --- Share buttons ----------------------------------------------------------
+
+// What the Share button on each of these platforms appends. Every name here is
+// short and ordinary - `si`, `s`, `t`, `pp` - and means something real on other
+// sites, so each is scoped to the site that mints it. Stripping any of them
+// globally would rewrite links rather than clean them.
+
+const youtubeParams = new Set(['si', 'pp']);
+
+// `t` is deliberately absent above. On YouTube it is the playback timestamp
+// (?t=43s), so removing it would break a "start at 0:43" link - while on X the
+// same name is a tracking token, stripped below. One name, opposite meanings:
+// this is the case that makes per-site scoping mandatory rather than tidy.
+
+const spotifyParams = new Set(['si']);
+
+// `igshid` is already stripped everywhere; `igsh` is the newer, shorter name
+// Instagram switched to and nothing else uses.
+const instagramParams = new Set(['igsh']);
+
+// `s` and `t` come from the Share sheet, `ref_src` and `ref_url` from embedded
+// timelines. The `ref_` prefix belongs to Amazon, so these two need naming.
+const twitterParams = new Set(['s', 't', 'ref_src', 'ref_url']);
+
+const facebookParams = new Set(['mibextid']);
+
 // --- The site table ---------------------------------------------------------
 
 // Each row carries the parameters and prefixes that count as tracking only on
@@ -96,7 +122,12 @@ const siteRules = [
         params: amazonParams,
         prefixes: amazonPrefixes,
         canonicalPath: amazonProductPath
-    }
+    },
+    { id: 'youtube',   domains: ['youtube.com', 'youtu.be'], params: youtubeParams },
+    { id: 'spotify',   domains: ['spotify.com'],             params: spotifyParams },
+    { id: 'instagram', domains: ['instagram.com'],           params: instagramParams },
+    { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
+    { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams }
 ];
 
 const NO_PARAMS = new Set();
