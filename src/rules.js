@@ -31,8 +31,13 @@ export const trackingParams = {
     ]
 };
 
+// Parameter names are matched case-insensitively, so every name is folded once
+// here rather than on every lookup. The lists above keep their natural spelling
+// because that is how the vendors document them.
+const fold = names => new Set([...names].map(name => name.toLowerCase()));
+
 // Flattened once at module load rather than rebuilt on every call.
-export const globalTrackingParams = new Set(Object.values(trackingParams).flat());
+export const globalTrackingParams = fold(Object.values(trackingParams).flat());
 
 // Prefixed families that no explicit list can enumerate. Stripped everywhere.
 // Deliberately one alternation rather than several patterns: a single regex
@@ -140,12 +145,15 @@ const siteRules = [
 const NO_PARAMS = new Set();
 const NEVER = /(?!)/;
 
+// Prefix patterns are written lowercase and tested against an already-folded
+// key, so they need no /i and stay as cheap as they were.
+
 // domain -> rule. Several domains share one rule object, and the lookup in
 // cleaner.js walks a hostname's suffixes against this map, so the cost does
 // not grow with the number of sites in the table.
 export const siteRuleByDomain = new Map();
 for (const rule of siteRules) {
-    if (!rule.params) rule.params = NO_PARAMS;
+    rule.params = rule.params ? fold(rule.params) : NO_PARAMS;
     if (!rule.prefixes) rule.prefixes = NEVER;
     for (const domain of rule.domains) siteRuleByDomain.set(domain, rule);
 }

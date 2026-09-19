@@ -50,11 +50,17 @@ function cleanFragment(hash, rule) {
 }
 
 // `rule` is the site rule for the URL's host, or null off any known site.
+//
+// Matching is case-insensitive: sites really do mint ?CMP= and ?ICID=, and a
+// case-sensitive lookup let every one of them through. Only the comparison is
+// folded - a parameter that survives is re-appended under the spelling it
+// arrived with, so ?ProductID= never comes back as ?productid=.
 function isTrackingParam(key, rule) {
-    if (globalTrackingParams.has(key)) return true;
-    if (key.startsWith('utm_') || trackingPrefixes.test(key)) return true;
+    const name = key.toLowerCase();
+    if (globalTrackingParams.has(name)) return true;
+    if (name.startsWith('utm_') || trackingPrefixes.test(name)) return true;
     if (!rule) return false;
-    return rule.params.has(key) || rule.prefixes.test(key);
+    return rule.params.has(name) || rule.prefixes.test(name);
 }
 
 export function cleanUrl(urlString) {
