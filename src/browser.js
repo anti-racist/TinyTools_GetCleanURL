@@ -12,14 +12,18 @@ function queryTabs(options) {
         try {
             chrome.tabs.query(options, tabs => {
                 if (chrome.runtime && chrome.runtime.lastError) {
-                    console.warn('tabs.query failed:', chrome.runtime.lastError.message);
+                    // Debug, not warn: getActiveTab() treats an empty result as
+                    // a cue to try the next query, so a failure here is part of
+                    // how the fallback chain works rather than something gone
+                    // wrong. When every query fails the popup says so itself.
+                    console.debug('tabs.query failed:', chrome.runtime.lastError.message);
                     resolve([]);
                     return;
                 }
                 resolve(Array.isArray(tabs) ? tabs : []);
             });
         } catch (error) {
-            console.warn('tabs.query threw:', error);
+            console.debug('tabs.query threw:', error);
             resolve([]);
         }
     });
@@ -80,7 +84,7 @@ function copyViaSelection(text) {
         field.setSelectionRange(0, text.length);
         return document.execCommand('copy');
     } catch (error) {
-        console.warn('Selection-based copy failed:', error);
+        console.debug('Selection-based copy failed:', error);
         return false;
     } finally {
         field.remove();
@@ -92,7 +96,17 @@ export async function copyToClipboard(text, retryCount = 0) {
         await navigator.clipboard.writeText(text);
         return true;
     } catch (error) {
-        console.error(`Clipboard write attempt ${retryCount + 1} failed:`, error);
+        // Expected, not exceptional. The async API needs the document to hold
+        // focus, and the popup's copy-on-open is not a user gesture; some
+        // browsers host the popup so that it never holds focus at that moment.
+        // The synchronous path below is there for exactly this and handles it.
+        //
+        // Logged at debug level on purpose: console.error here puts a red
+        // "Errors" badge on the extension for every single copy those users
+        // make, and an unexplained error on a privacy tool is how support mail
+        // starts - the v1.3 report that led to v1.4 opened with "is it
+        // actually sending the URL to a remote service?".
+        console.debug(`Clipboard write attempt ${retryCount + 1} fell back:`, error);
 
         // A focus failure will not resolve itself by waiting, so try the
         // synchronous path before spending any time on a retry.
@@ -103,6 +117,9 @@ export async function copyToClipboard(text, retryCount = 0) {
             return copyToClipboard(text, retryCount + 1);
         }
 
+        // Every path has now failed and the user is being told so. This one is
+        // a real error and is the only clipboard message worth reporting.
+        console.error('Clipboard write failed after every fallback:', error);
         return false;
     }
 }
