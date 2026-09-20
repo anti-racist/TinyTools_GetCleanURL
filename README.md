@@ -35,24 +35,14 @@ single-tab copying still works. Tab titles are never read.
 
 `chrome://extensions` → **Developer mode** → **Load unpacked** → this folder.
 
-## Development
-
-```
-npm test        # unit tests
-npm run diff    # cleaner against the committed v1.4 baseline
-npm run verify  # both
-```
-
-`tests/corpus.js` generates close to 700 URLs and `tests/golden-v1.4.json` records
-what v1.4 did with each one. Any difference not listed in `tests/allowlist.json`
-fails the run; intended ones go in the allowlist with a reason. `npm run snapshot`
-rebuilds the baseline.
-
-`tests.html` runs the cleaner checks in a browser.
+## Source layout
 
 `src/rules.js` parameter lists and per-site rules, `src/cleaner.js` the cleaning,
 `src/batch.js` the multi-tab list, `src/browser.js` the Chrome APIs, `src/ui.js`
 every word the popup says.
+
+This repository holds the extension itself. The test suite and the golden
+baseline it is checked against are kept outside it.
 
 ## Privacy
 
