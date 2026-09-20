@@ -5,37 +5,55 @@
     box-sizing: border-box;
 }
 
-/* Base styles */
+/* Base styles.
+
+   The ground is 鱼肚白 #f7f4ed - a traditional off-white, the colour named
+   for the eastern sky at dawn. html, body and the container all carry it,
+   so the whole popup is one surface.
+
+   That leaves #url-display as the only pure white in here, which is the
+   point: the URL is what the popup was opened for, and it is now the
+   brightest thing on the page instead of white-on-white held apart by a
+   shadow. Measured on this ground - #333 body text 11.50:1, the button
+   border 3.74:1, its label 5.62:1 - everything stays clear of AA. */
 html {
-    background-color: #ffffff;
+    background-color: #f7f4ed;
 }
 
 body {
     width: 340px;
-    background-color: #ffffff;
+    background-color: #f7f4ed;
     font-family: 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    padding: 10px;
+    padding: 16px;
 }
 
-/* Popup Container with dynamic styling */
+/* Not a card. Chrome already draws the popup a border and a shadow, and the
+   card that used to be here was the same colour as the body behind it, so it
+   separated nothing.
+
+   No overflow: hidden either. It clipped content to the old corner
+   radius, and with this padding gone the button reaches the full width,
+   so it would now clip the button's focus ring instead. The ring sits in
+   the body's 16px padding. */
 .popup-container {
     width: 100%;
-    padding: 14px 22px 14px;
-    background: #ffffff;
-    border: none;
-    border-radius: 14px;
+    padding: 0;
     margin: 0;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 
-                0 2px 6px rgba(0, 0, 0, 0.08);
+    border: none;
     position: relative;
-    overflow: hidden;
     text-align: center;
-    transition: all 0.4s ease;
 }
 
-/* URL Display Box with elegant styling */
+/* URL Display Box with elegant styling. Hidden outright when there is
+   nothing on the clipboard to put in it - the UA default for [hidden] is
+   enough, but this states it next to the rest of the box's own layout. */
+#url-display[hidden] {
+    display: none;
+}
+
 #url-display {
+    /* The one pure white; see the note on the ground above. */
     background-color: #ffffff;
     padding: 16px;
     border-radius: 10px;
@@ -47,8 +65,7 @@ body {
     font-size: 14px;
     line-height: 1.5;
     color: #333333;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2ddd0;
     max-height: 85px;
     overflow-y: auto;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -75,12 +92,10 @@ body {
     padding: 14px 16px;
     border-radius: 10px;
     border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    animation: fadeIn 0.25s ease-out forwards;
+    animation: fadeIn 0.12s ease-out forwards;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-align: left;
     width: 100%;
-    cursor: pointer;
     transform: translateZ(0);
     will-change: transform;
 }
@@ -97,31 +112,12 @@ body {
     gap: 4px;
 }
 
-/* Brand footer with optimized transition */
-.brand-footer {
-    font-size: 13px;
-    color: #666666;
-    text-align: center;
-    margin-top: 0;
-    padding-top: 10px;
-    padding-bottom: 6px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    opacity: 0.9;
-    transition: opacity 0.15s ease;
-    transform: translateZ(0);
-}
-
-.brand-footer:hover {
-    opacity: 1;
-    color: #333333;
-}
-
 /* Success Message - with improved green styling */
 .success {
     color: #ffffff;
-    background: linear-gradient(135deg, rgba(46, 174, 96, 0.9) 0%, rgba(39, 154, 86, 0.9) 100%);
-    border-left: 4px solid #2ecc71;
+    /* 官绿, a Ming-Qing dye name. White on it is 6.18:1, where the green it
+       replaces ran 2.59-3.15:1 and failed AA outright. */
+    background: #2a6e3f;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
@@ -133,81 +129,62 @@ body {
     margin-right: 10px;
     font-size: 16px;
     display: inline-block;
-    animation: checkmarkPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-    transform-origin: center;
-    transform: translateZ(0);
-    will-change: transform;
 }
 
-/* Info Message - with improved contrast */
-.info {
+/* Info and notice share the yellow; they differ only in the mark, because
+   one of them copied something and the other did not. */
+.info,
+.notice {
     color: #000000;
-    background: linear-gradient(135deg, rgba(255, 213, 79, 1) 0%, rgba(255, 196, 0, 1) 100%);
-    border-left: 4px solid #ffa000;
+    /* 藤黃, gamboge - the tree resin used as a painting pigment. Black on it
+       is 11.96:1; this state was already the only one that passed. */
+    background: #ffb61e;
     text-shadow: none;
 }
 
-/* Info icon with animation */
+/* The tick belongs to already-clean alone: that state did put a URL on the
+   clipboard, it just had nothing to strip. Black, not green - every mark takes
+   the colour of the text beside it, which is the only rule that makes the four
+   of them a set. Green here measured 3.52:1; black measures 11.96. */
 .info::before {
     content: "\2714";
-    color: #2ecc71;
+    color: #000000;
     font-weight: bold;
     margin-right: 10px;
     font-size: 16px;
     display: inline-block;
-    animation: checkmarkPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-    transform-origin: center;
-    transform: translateZ(0);
-    will-change: transform;
+}
+
+/* Nothing was copied here, so no tick: a circled i, in the same CSS content
+   mechanism as the other two marks. */
+.notice::before {
+    content: "\24D8";
+    color: #000000;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 16px;
+    display: inline-block;
 }
 
 /* Error Message - with improved red styling */
 .error {
     color: #ffffff;
-    background: linear-gradient(135deg, rgba(231, 76, 60, 0.9) 0%, rgba(192, 57, 43, 0.9) 100%);
-    border-left: 4px solid #e74c3c;
+    /* 赤 - "the colour of fire", one of the five cardinal colours. White on
+       it is 5.76:1, against 3.43-4.66:1 before. */
+    background: #c3272b;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
-/* Error icon with animation */
+/* Text, not emoji. U+274C is Emoji_Presentation=Yes, so the browser drew its
+   own red glyph and ignored the colour below - a red cross on 赤, about 1.2:1.
+   U+2716 is the heavy weight that pairs with U+2714 and takes the white: 5.76. */
 .error::before {
-    content: "\274C";
+    content: "\2716";
     color: #ffffff;
     font-weight: bold;
     margin-right: 10px;
     font-size: 16px;
     display: inline-block;
-    animation: shake 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
-    transform-origin: center;
-    transform: translateZ(0);
-    will-change: transform;
-}
-
-/* Checkmark animation - enhanced bounce */
-@keyframes checkmarkPop {
-    0% {
-        transform: scale(0) translateZ(0);
-        opacity: 0;
-    }
-    70% {
-        transform: scale(1.3) translateZ(0);
-        opacity: 1;
-    }
-    85% {
-        transform: scale(0.9) translateZ(0);
-    }
-    100% {
-        transform: scale(1) translateZ(0);
-    }
-}
-
-/* Enhanced shake animation */
-@keyframes shake {
-    0%, 100% { transform: translateX(0) translateZ(0); }
-    20% { transform: translateX(-4px) translateZ(0); }
-    40% { transform: translateX(4px) translateZ(0); }
-    60% { transform: translateX(-3px) translateZ(0); }
-    80% { transform: translateX(3px) translateZ(0); }
 }
 
 /* Enhanced fade-in animation */
@@ -222,19 +199,18 @@ body {
     }
 }
 
-/* Success state container */
-.state-success .popup-container {
-    background: linear-gradient(135deg, rgba(46, 174, 96, 0.08) 0%, rgba(39, 154, 86, 0.04) 100%);
-}
+/* Reduced motion: everything that MOVES comes off. The fade carries a 6px
+   slide and the hover lift is a translate; the colour and shadow changes are
+   not motion and stay, so the popup still answers the mouse. */
+@media (prefers-reduced-motion: reduce) {
+    #message {
+        animation: none;
+    }
 
-/* Error state container */
-.state-error .popup-container {
-    background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(192, 57, 43, 0.04) 100%);
-}
-
-/* Warning/neutral state container - slightly adjusted */
-.state-warning .popup-container {
-    background: linear-gradient(135deg, rgba(255, 213, 79, 0.08) 0%, rgba(255, 196, 0, 0.04) 100%);
+    #url-display:hover,
+    #message:hover {
+        transform: none;
+    }
 }
 
 /* Refined Scrollbar styling */
@@ -248,47 +224,57 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(61, 92, 37, 0.5);
+    background: rgba(42, 110, 63, 0.5);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(61, 92, 37, 0.7);
+    background: rgba(42, 110, 63, 0.7);
 }
 
 /* Secondary action - deliberately quieter than the copy that happens on its
    own above it. The label says what it does in plain words because that is
    also what explains the permission Chrome asks for the first time it is
    pressed: a prompt that follows "Copy all open tabs" reads as obvious,
-   where one that follows "Batch mode" reads as unexplained. */
+   where one that follows "Batch mode" reads as unexplained.
+
+   Outlined rather than filled, in the same 官绿 the success state is painted
+   with. A border is enough to mark it as a control; a fill would make it the
+   loudest thing here, and the action it performs is the secondary one - the
+   copy that matters has already happened by the time the popup is drawn. */
 #copy-all {
     width: 100%;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: #444444;
-    background-color: #ffffff;
-    border: none;
+    color: #2a6e3f;
+    background-color: transparent;
+    border: 1px solid rgba(42, 110, 63, 0.8);
     border-radius: 10px;
-    padding: 11px 14px;
+    /* WCAG 1.4.11: the border is what identifies this as a control, so it
+       carries the alpha that measures 3.74:1 against the paper ground - 0.7
+       would be 3.08, too near the 3.0 floor to spend.
+       10 + 1px of border = the 11px the filled version padded, so the
+       button keeps the height everything above it was spaced against. */
+    padding: 10px 14px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.15s ease;
-    transform: translateZ(0);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
+/* Fills in, rather than lifting: the lift is the language of the boxes above,
+   and borrowing it back is what made the button look like one of them. */
 #copy-all:hover {
-    color: #111111;
-    transform: translateY(-2px) translateZ(0);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+    border-color: #2a6e3f;
+    background-color: rgba(42, 110, 63, 0.06);
 }
 
 #copy-all:active {
-    transform: translateY(0) translateZ(0);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    background-color: rgba(42, 110, 63, 0.12);
 }
 
+/* Was #ffa000, which measured 2.04:1 against the white this popup used to
+   for the only thing in here that can hold focus. */
 #copy-all:focus-visible {
-    outline: 2px solid #ffa000;
+    outline: 2px solid #2a6e3f;
     outline-offset: 2px;
 }

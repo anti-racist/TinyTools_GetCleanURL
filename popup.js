@@ -47,7 +47,7 @@ async function copyCurrentTab(show) {
 async function copyAllTabs(granted, show, restore) {
     if (!await granted) {
         // Declined. Say nothing about it and put back what was on screen
-        // before the click: nagging is what makes an extension feel pushy.
+        // before the click.
         restore();
         return;
     }
@@ -59,7 +59,7 @@ async function copyAllTabs(granted, show, restore) {
         return;
     }
     if (!await copyToClipboard(list.text)) {
-        show({ kind: 'batch-copy-failed' });
+        show({ kind: 'batch-copy-failed', text: list.text });
         return;
     }
 
@@ -79,35 +79,73 @@ async function main() {
     );
 
     let current = { kind: 'loading' };
-    const show = state => { current = state; renderer.show(state); };
+    let owner = 0;
 
-    show({ kind: 'loading' });
+    // Two paths can be in flight at once. The automatic copy starts when the
+    // popup opens, and the button is live before it finishes - so a user whose
+    // tabs permission is already granted can complete a batch while the single
+    // copy is still waiting on the clipboard, which on the retry path is up to
+    // 750ms. Without this, the single result lands on top of "Copied 14 URLs"
+    // and the user is told the wrong thing about their own clipboard.
+    //
+    // Ownership is taken when a path STARTS, not when it renders - the stale
+    // path is the one that started earlier, and it is also the one that tends
+    // to render later, which is the whole problem. A path that ends without
+    // rendering anything, which is what declining the permission does, hands
+    // ownership back so the copy still running behind it can finish.
+    function claimant() {
+        const mine = ++owner;
+        let rendered = false;
+        const show = state => {
+            if (mine !== owner) return;
+            rendered = true;
+            current = state;
+            renderer.show(state);
+        };
+        show.release = () => { if (!rendered && owner === mine) owner = mine - 1; };
+        return show;
+    }
+
+    renderer.show(current);
 
     const button = document.getElementById('copy-all');
     if (button) {
+        let running = false;
         button.addEventListener('click', () => {
+            // Nothing is disabled on screen; a second batch would simply
+            // duplicate the first, so the second click is dropped instead.
+            if (running) return;
+            running = true;
             // Asked for first and synchronously: any await before this loses
             // the user gesture. It resolves true without prompting when the
             // permission is already held, so there is nothing to check first.
             const granted = requestTabsPermission();
             const before = current;
+            const show = claimant();
             // The browser ignores what a listener returns; the tests await it.
-            return copyAllTabs(granted, show, () => renderer.show(before))
+            return copyAllTabs(granted, show, () => { show.release(); renderer.show(before); })
                 .catch(error => {
                     console.error('Copy all tabs failed:', error);
                     show({ kind: 'unexpected' });
-                });
+                })
+                .finally(() => { running = false; });
         });
     }
 
-    await copyCurrentTab(show);
+    await copyCurrentTab(claimant());
 }
 
-// Last line of defence: the popup must never sit on "Getting URL..." with no
-// explanation, whatever goes wrong underneath.
+// Last line of defence: the popup must never sit there saying nothing,
+// whatever goes wrong underneath.
 function run() {
     return main().catch(error => {
         console.error('Unexpected popup failure:', error);
+        // Written by hand rather than through the renderer, because whatever
+        // failed may be inside it. The box is hidden for the same reason: if
+        // it is showing a URL at this point, there is no longer any promise
+        // that it is the one on the clipboard.
+        const urlElement = document.getElementById('url-display');
+        if (urlElement) urlElement.hidden = true;
         const messageElement = document.getElementById('message');
         if (messageElement) {
             messageElement.className = 'error';

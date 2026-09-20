@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Get Clean URL",
   "version": "2.0",
-  "description": "Get a clean URL without tracking parameters with one click.",
+  "description": "Get a clean URL without tracking parameters with one click, or all your open tabs at once.",
   "permissions": [
     "activeTab",
     "clipboardWrite"
@@ -10,6 +10,9 @@
   "optional_permissions": [
     "tabs"
   ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

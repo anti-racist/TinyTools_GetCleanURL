@@ -104,15 +104,13 @@ function amazonProductPath(pathParts) {
 // it can only be identifying the share rather than describing the video.
 //
 // `pp` was here and has been taken out: it is a base64 blob that very probably
-// does not affect playback, and "very probably" is not evidence. A rule set is
-// worth what its weakest entry is worth, and one entry nobody can justify
-// discounts all of them.
+// does not affect playback, and "very probably" is not evidence.
 const youtubeParams = new Set(['si']);
 
 // `t` is deliberately absent above. On YouTube it is the playback timestamp
 // (?t=43s), so removing it would break a "start at 0:43" link - while on X the
-// same name is a tracking token, stripped below. One name, opposite meanings:
-// this is the case that makes per-site scoping mandatory rather than tidy.
+// same name is a tracking token, stripped below. The same name means
+// opposite things on the two sites, so neither rule can be global.
 
 const spotifyParams = new Set(['si']);
 
@@ -135,8 +133,7 @@ const facebookParams = new Set(['mibextid']);
 //
 // The rest - qs, pq, sk, sc, sp, ghc, lq - are left alone. Several look like
 // telemetry as well, and `pq` even carries what was typed before autocomplete
-// finished, but what any of them do to the page is a guess, and guessing is
-// how a link gets broken rather than cleaned.
+// finished, but what any of them do to the page is a guess.
 //
 // Scoped to Bing, FORM especially: matching folds case, so a global rule
 // would take `form=` off every site that has one.
