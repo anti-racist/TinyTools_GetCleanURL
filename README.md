@@ -53,6 +53,22 @@ No data collected, no network access.
 
 Chrome, Edge, Vivaldi.
 
+## What is new in 2.0.1
+
+- Parameters that are kept now stay exactly as they were. Removing a tracker
+  used to re-encode the rest of the link, which garbled non-UTF-8 search terms
+  (Baidu) and broke `#!/` page routes.
+- Google Search results pages: session and telemetry parameters removed,
+  including AI Mode's `mstk`, `csuir` and `mtid`. Other Google services are
+  left alone.
+- A username and password in a link (`user:pass@`) are removed before copying.
+- Amazon Turkey (`amazon.com.tr`), Belgium and Egypt recognised; so are
+  addresses written with a trailing dot.
+- Vivaldi: with several windows open, the tab copied is the one in the window
+  you clicked in, never another window's.
+- Declining the tabs permission no longer blanks a result the popup had
+  already copied.
+
 ## What is new in 2.0
 
 - Copy every open tab at once, cleaned and de-duplicated.
