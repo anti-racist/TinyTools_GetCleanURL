@@ -132,6 +132,15 @@ export function cleanUrl(urlString) {
         let changed = false;
         let removedCount = 0;
 
+        // Credentials in the address (https://user:pass@host/) are never
+        // something to hand on: the link works without them, and pasting it
+        // anywhere would publish them. Not counted as a tracking parameter.
+        if (url.username || url.password) {
+            url.username = '';
+            url.password = '';
+            changed = true;
+        }
+
         const rule = siteRuleFor(url.hostname);
 
         if (rule && rule.canonicalPath) {

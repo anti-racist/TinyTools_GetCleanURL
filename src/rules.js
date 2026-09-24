@@ -71,7 +71,7 @@ const amazonDomains = [
     'amazon.nl', 'amazon.se', 'amazon.pl', 'amazon.sg', 'amazon.tr',
     // Amazon's Turkish store is amazon.com.tr; the amazon.tr entry above
     // never matched it, so Turkish links kept their affiliate tags.
-    'amazon.com.tr'
+    'amazon.com.tr', 'amazon.com.be', 'amazon.eg'
 ];
 
 // A product identifier is only trusted directly after one of these segments:
