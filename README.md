@@ -13,9 +13,10 @@ merged, one link per line.
 Removed everywhere: `utm_*`, `fbclid`, `gclid`, `mc_eid` and 38 more, plus the
 `fb_`, `pk_`, `mtm_` and `hsa_` families. Kept: anything that changes what the
 page shows, and `ref`, `referrer`, `source`, which mean something real on plenty
-of sites. Three sites have their own rules — Amazon (affiliate and session
-parameters; product links collapsed to `/dp/<ASIN>`), YouTube (`si`) and Bing
-(`cvid`, `FORM`).
+of sites. Four sites have their own rules — Amazon (affiliate and session
+parameters; product links collapsed to `/dp/<ASIN>`), YouTube (`si`), Bing
+(`cvid`, `FORM`) and Google Search (`ved`, `ei`, `oq`, `gs_*` and other session
+and telemetry values, on results pages only).
 
 On pages it cannot read — `chrome://`, the extension gallery, a blank new tab —
 it does nothing and leaves the clipboard alone.
@@ -51,6 +52,22 @@ No data collected, no network access.
 ## Compatibility
 
 Chrome, Edge, Vivaldi.
+
+## What is new in 2.0.1
+
+- Parameters that are kept now stay exactly as they were. Removing a tracker
+  used to re-encode the rest of the link, which garbled non-UTF-8 search terms
+  (Baidu) and broke `#!/` page routes.
+- Google Search results pages: session and telemetry parameters removed,
+  including AI Mode's `mstk`, `csuir` and `mtid`. Other Google services are
+  left alone.
+- A username and password in a link (`user:pass@`) are removed before copying.
+- Amazon Turkey (`amazon.com.tr`), Belgium and Egypt recognised; so are
+  addresses written with a trailing dot.
+- Vivaldi: with several windows open, the tab copied is the one in the window
+  you clicked in, never another window's.
+- Declining the tabs permission no longer blanks a result the popup had
+  already copied.
 
 ## What is new in 2.0
 

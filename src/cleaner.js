@@ -13,7 +13,9 @@ import {
 // holds one site or a hundred - unlike scanning a list of domains, which costs
 // one comparison per entry.
 function siteRuleFor(hostname) {
-    let candidate = hostname;
+    // A fully qualified name (www.amazon.com.) is the same host, and it
+    // otherwise slipped past every site rule with its tracking intact.
+    let candidate = hostname.endsWith('.') ? hostname.slice(0, -1) : hostname;
     for (;;) {
         const rule = siteRuleByDomain.get(candidate);
         if (rule) return rule;
@@ -32,21 +34,43 @@ function cleanFragment(hash, rule) {
     // Hash routes and plain anchors are left exactly as they are.
     if (raw.startsWith('/') || !raw.includes('=')) return { hash, removed: 0 };
 
-    const kept = new URLSearchParams();
-    let removed = 0;
-
-    for (const [key, value] of new URLSearchParams(raw)) {
-        if (isTrackingParam(key, rule)) {
-            removed++;
-        } else {
-            kept.append(key, value);
-        }
-    }
+    // URLSearchParams strips one leading '?' before parsing, so it is set
+    // aside here and put back in front of whatever survives.
+    const lead = raw.startsWith('?') ? '?' : '';
+    const { kept, removed } = filterParams(raw.slice(lead.length), rule);
 
     if (removed === 0) return { hash, removed: 0 };
 
-    const remaining = kept.toString();
-    return { hash: remaining ? '#' + remaining : '', removed };
+    return { hash: kept ? '#' + lead + kept : '', removed };
+}
+
+// Drop the tracking pairs from a query or fragment string and return the rest
+// exactly as it arrived.
+//
+// Only the key is decoded, and only to compare it. The surviving pairs are
+// copied through byte for byte: re-serialising them through URLSearchParams
+// rewrote every kept parameter - %20 became +, /a/b became %2Fa%2Fb, ?debug
+// became ?debug=, a #!/route hash was percent-encoded into a dead link, and a
+// GBK-encoded search term (Baidu's ?ie=gbk&wd=%C4%E3) was decoded as UTF-8
+// and came back as U+FFFD replacement characters.
+function filterParams(raw, rule) {
+    const kept = [];
+    let removed = 0;
+
+    for (const segment of raw.split('&')) {
+        if (!segment) continue;
+        // One segment parsed on its own gives exactly the key URLSearchParams
+        // gives for it in the full string. The leading '&' stops a segment
+        // that happens to start with '?' from having it stripped.
+        const [key] = new URLSearchParams('&' + segment).keys();
+        if (isTrackingParam(key, rule)) {
+            removed++;
+        } else {
+            kept.push(segment);
+        }
+    }
+
+    return { kept: kept.join('&'), removed };
 }
 
 // Schemes that can carry a link worth sharing. Everything else a tab can hold
@@ -108,7 +132,17 @@ export function cleanUrl(urlString) {
         let changed = false;
         let removedCount = 0;
 
-        const rule = siteRuleFor(url.hostname);
+        // Credentials in the address (https://user:pass@host/) are never
+        // something to hand on: the link works without them, and pasting it
+        // anywhere would publish them. Not counted as a tracking parameter.
+        if (url.username || url.password) {
+            url.username = '';
+            url.password = '';
+            changed = true;
+        }
+
+        let rule = siteRuleFor(url.hostname);
+        if (rule && rule.path && !rule.path.test(url.pathname)) rule = null;
 
         if (rule && rule.canonicalPath) {
             const canonical = rule.canonicalPath(url.pathname.split('/').filter(Boolean));
@@ -138,21 +172,14 @@ export function cleanUrl(urlString) {
         }
 
         if (url.search) {
-            const kept = new URLSearchParams();
-            let removedAny = false;
+            const { kept, removed } = filterParams(url.search.slice(1), rule);
 
-            for (const [key, value] of new URLSearchParams(url.search)) {
-                if (isTrackingParam(key, rule)) {
-                    removedAny = true;
-                    removedCount++;
-                } else {
-                    kept.append(key, value);
-                }
-            }
-
-            if (removedAny) {
-                url.search = kept.toString();
+            if (removed > 0) {
+                // The explicit '?' is the one the setter strips, so a kept
+                // pair that itself starts with '?' keeps it.
+                url.search = kept ? '?' + kept : '';
                 changed = true;
+                removedCount += removed;
             }
         }
 
