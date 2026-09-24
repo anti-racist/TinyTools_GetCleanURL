@@ -142,10 +142,48 @@ const facebookParams = new Set(['mibextid']);
 // would take `form=` off every site that has one.
 const bingParams = new Set(['cvid', 'FORM']);
 
+// --- Google Search ----------------------------------------------------------
+
+// What Google attaches to a results page on top of the query. None of these
+// changes the results: the page is rebuilt from `q`, `udm`, `tbm`, `tbs`, `hl`
+// and the rest, which are all kept.
+//
+//   ved, ei, sei       click and session identifiers
+//   sxsrf              a token carrying a timestamp
+//   oq                 what was typed before autocomplete finished - the
+//                      same leak as Bing's `pq`, but here documented as such
+//   gs_*               autocomplete telemetry (gs_lcrp, gs_lp, gs_ssp, ...)
+//   aqs, sourceid,     how the search was started: omnibox statistics, the
+//   sclient, rlz       browser, the search box, a distribution promo code
+//   sca_esv, sca_upv,  opaque per-session values
+//   iflsig, fbs, uact
+//
+// Every one of these is also stripped by ClearURLs, and ei, ved, sxsrf and
+// sclient are what search-API documentation says to drop before sharing.
+//
+// Deliberately kept:
+//   biw, bih, dpr      viewport size. AdGuard stripped biw/bih and broke AI
+//                      Mode and Lens, which demand them back.
+//   ie                 the query's character encoding. Without it a non-UTF-8
+//                      query is read wrongly.
+//   udm, aep, mstk,    AI Mode's mode switch and state. What the tokens do to
+//   mtid, csuir,       the page is not documented, and a guess is not
+//   lns_mode, zx       evidence.
+//   client, source, sa too ordinary to prove harmless.
+const googleSearchParams = new Set([
+    'ved', 'ei', 'sei', 'sxsrf', 'oq', 'aqs', 'sourceid', 'sclient', 'rlz',
+    'sca_esv', 'sca_upv', 'iflsig', 'fbs', 'uact'
+]);
+
+const googleSearchPrefixes = /^gs_/;
+
 // --- The site table ---------------------------------------------------------
 
 // Each row carries the parameters and prefixes that count as tracking only on
-// that site, and optionally a canonicalPath().
+// that site, and optionally a canonicalPath() and a path.
+//
+// path, when present, limits the row to pages whose path it matches; anywhere
+// else on the site the row does not apply at all.
 //
 // canonicalPath(pathParts) returning a path means this URL has one true form
 // and everything else on it - query and fragment alike - is noise. Returning
@@ -163,7 +201,18 @@ const siteRules = [
     { id: 'instagram', domains: ['instagram.com'],           params: instagramParams },
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
-    { id: 'bing',      domains: ['bing.com'],                params: bingParams }
+    { id: 'bing',      domains: ['bing.com'],                params: bingParams },
+    // Results pages only. google.com also serves Docs, Accounts, Mail and
+    // Drive, where these names are nobody's business to remove. Google has
+    // redirected its country domains to google.com since April 2025, so no
+    // country list is needed.
+    {
+        id: 'google',
+        domains: ['google.com'],
+        params: googleSearchParams,
+        prefixes: googleSearchPrefixes,
+        path: /^\/search\/?$/
+    }
 ];
 
 const NO_PARAMS = new Set();

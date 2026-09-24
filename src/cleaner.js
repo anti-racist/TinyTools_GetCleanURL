@@ -141,7 +141,8 @@ export function cleanUrl(urlString) {
             changed = true;
         }
 
-        const rule = siteRuleFor(url.hostname);
+        let rule = siteRuleFor(url.hostname);
+        if (rule && rule.path && !rule.path.test(url.pathname)) rule = null;
 
         if (rule && rule.canonicalPath) {
             const canonical = rule.canonicalPath(url.pathname.split('/').filter(Boolean));

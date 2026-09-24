@@ -13,9 +13,10 @@ merged, one link per line.
 Removed everywhere: `utm_*`, `fbclid`, `gclid`, `mc_eid` and 38 more, plus the
 `fb_`, `pk_`, `mtm_` and `hsa_` families. Kept: anything that changes what the
 page shows, and `ref`, `referrer`, `source`, which mean something real on plenty
-of sites. Three sites have their own rules — Amazon (affiliate and session
-parameters; product links collapsed to `/dp/<ASIN>`), YouTube (`si`) and Bing
-(`cvid`, `FORM`).
+of sites. Four sites have their own rules — Amazon (affiliate and session
+parameters; product links collapsed to `/dp/<ASIN>`), YouTube (`si`), Bing
+(`cvid`, `FORM`) and Google Search (`ved`, `ei`, `oq`, `gs_*` and other session
+and telemetry values, on results pages only).
 
 On pages it cannot read — `chrome://`, the extension gallery, a blank new tab —
 it does nothing and leaves the clipboard alone.
