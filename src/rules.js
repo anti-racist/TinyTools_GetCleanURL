@@ -157,6 +157,10 @@ const bingParams = new Set(['cvid', 'FORM']);
 //   sclient, rlz       browser, the search box, a distribution promo code
 //   sca_esv, sca_upv,  opaque per-session values
 //   iflsig, fbs, uact
+//   mstk, csuir, mtid  AI Mode conversation state. Tested: the same AI Mode
+//                      link opened without them, in a fresh window, still
+//                      loads AI Mode and answers the question in `q` - and
+//                      the page then adds a fresh set of all three itself.
 //
 // Every one of these is also stripped by ClearURLs, and ei, ved, sxsrf and
 // sclient are what search-API documentation says to drop before sharing.
@@ -166,13 +170,14 @@ const bingParams = new Set(['cvid', 'FORM']);
 //                      Mode and Lens, which demand them back.
 //   ie                 the query's character encoding. Without it a non-UTF-8
 //                      query is read wrongly.
-//   udm, aep, mstk,    AI Mode's mode switch and state. What the tokens do to
-//   mtid, csuir,       the page is not documented, and a guess is not
-//   lns_mode, zx       evidence.
+//   udm, aep           AI Mode's mode switch; without them the link opens an
+//                      ordinary results page.
+//   lns_mode, zx       not yet tested the way the AI Mode tokens were, and a
+//                      guess is not evidence.
 //   client, source, sa too ordinary to prove harmless.
 const googleSearchParams = new Set([
     'ved', 'ei', 'sei', 'sxsrf', 'oq', 'aqs', 'sourceid', 'sclient', 'rlz',
-    'sca_esv', 'sca_upv', 'iflsig', 'fbs', 'uact'
+    'sca_esv', 'sca_upv', 'iflsig', 'fbs', 'uact', 'mstk', 'csuir', 'mtid'
 ]);
 
 const googleSearchPrefixes = /^gs_/;
