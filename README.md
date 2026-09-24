@@ -47,7 +47,7 @@ baseline it is checked against are kept outside it.
 
 ## Privacy
 
-We do not collect or store any user data. Nothing you type ever leaves your browser.
+We do not collect any user data. Nothing you type is ever sent to us.
 
 Full details: [privacy policy](PRIVACY.md).
 
