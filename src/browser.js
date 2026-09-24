@@ -61,8 +61,14 @@ export async function getActiveTab() {
 
     // 3. Last resort: any active tab that is a real web page. Under activeTab
     //    only the granted tab exposes a readable url, so this self-limits.
-    const anyActive = await queryTabs({ active: true });
-    return anyActive.find(isWebPageTab) || null;
+    //
+    //    It stops self-limiting once the optional `tabs` permission is held
+    //    for Copy all open tabs: then every window's active tab is readable,
+    //    and taking the first one copied another window's page. Only an
+    //    unambiguous answer is used; more than one means we cannot tell which
+    //    tab the user meant, and copying the wrong URL is worse than none.
+    const candidates = (await queryTabs({ active: true })).filter(isWebPageTab);
+    return candidates.length === 1 ? candidates[0] : null;
 }
 
 // Synchronous clipboard write that does not require the async API's focus

@@ -80,6 +80,8 @@ async function main() {
 
     let current = { kind: 'loading' };
     let owner = 0;
+    // What a path tried to show while another held ownership, by claimant.
+    const suppressed = new Map();
 
     // Two paths can be in flight at once. The automatic copy starts when the
     // popup opens, and the button is live before it finishes - so a user whose
@@ -97,12 +99,29 @@ async function main() {
         const mine = ++owner;
         let rendered = false;
         const show = state => {
-            if (mine !== owner) return;
+            if (mine !== owner) {
+                suppressed.set(mine, state);
+                return;
+            }
             rendered = true;
             current = state;
             renderer.show(state);
         };
-        show.release = () => { if (!rendered && owner === mine) owner = mine - 1; };
+        // Returns true when handing ownership back also rendered the result
+        // the earlier path produced while this one held it. Without that, a
+        // single copy that finished while the permission prompt was open was
+        // dropped, and declining put back the blank loading state over a
+        // clipboard that had in fact been written.
+        show.release = () => {
+            if (rendered || owner !== mine) return false;
+            owner = mine - 1;
+            const late = suppressed.get(owner);
+            if (!late) return false;
+            suppressed.delete(owner);
+            current = late;
+            renderer.show(late);
+            return true;
+        };
         return show;
     }
 
@@ -123,7 +142,7 @@ async function main() {
             const before = current;
             const show = claimant();
             // The browser ignores what a listener returns; the tests await it.
-            return copyAllTabs(granted, show, () => { show.release(); renderer.show(before); })
+            return copyAllTabs(granted, show, () => { if (!show.release()) renderer.show(before); })
                 .catch(error => {
                     console.error('Copy all tabs failed:', error);
                     show({ kind: 'unexpected' });
