@@ -47,11 +47,13 @@ baseline it is checked against are kept outside it.
 
 ## Privacy
 
-No data collected, no network access.
+We do not collect or store any user data. Nothing you type ever leaves your browser.
+
+Full details: [privacy policy](PRIVACY.md).
 
 ## Compatibility
 
-Chrome, Edge, Vivaldi.
+Compatible with most Chromium-based browsers, including Google Chrome, Microsoft Edge and Vivaldi.
 
 ## What is new in 2.0.1
 
