@@ -70,13 +70,3 @@ Compatible with most Chromium-based browsers, including Google Chrome, Microsoft
   you clicked in, never another window's.
 - Declining the tabs permission no longer blanks a result the popup had
   already copied.
-
-## What is new in 2.0
-
-- Copy every open tab at once, cleaned and de-duplicated.
-- Opening the extension on a new tab or a settings page no longer replaces your
-  clipboard.
-- Parameter counts are right on Amazon product links.
-- Many more tracking parameters recognised, including ones in capital letters.
-- Redesigned popup: clearer wording, visible focus ring, WCAG 2.2 AA contrast.
-- Rules are organised site by site.
