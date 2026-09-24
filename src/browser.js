@@ -64,11 +64,30 @@ export async function getActiveTab() {
     //
     //    It stops self-limiting once the optional `tabs` permission is held
     //    for Copy all open tabs: then every window's active tab is readable,
-    //    and taking the first one copied another window's page. Only an
-    //    unambiguous answer is used; more than one means we cannot tell which
-    //    tab the user meant, and copying the wrong URL is worse than none.
+    //    and taking the first one copied another window's page. So when more
+    //    than one qualifies, the last focused *normal* window - which skips
+    //    Vivaldi's own UI window - decides. If even that cannot tell them
+    //    apart, nothing is copied: the wrong URL is worse than none.
     const candidates = (await queryTabs({ active: true })).filter(isWebPageTab);
-    return candidates.length === 1 ? candidates[0] : null;
+    if (candidates.length <= 1) return candidates[0] || null;
+
+    const windowId = await lastFocusedNormalWindowId();
+    return candidates.find(tab => windowId !== null && tab.windowId === windowId) || null;
+}
+
+// Needs no permission. Resolves null rather than rejecting, like queryTabs().
+function lastFocusedNormalWindowId() {
+    return new Promise(resolve => {
+        try {
+            chrome.windows.getLastFocused({ windowTypes: ['normal'] }, win => {
+                if (chrome.runtime && chrome.runtime.lastError) return resolve(null);
+                resolve(win && typeof win.id === 'number' ? win.id : null);
+            });
+        } catch (error) {
+            console.debug('windows.getLastFocused threw:', error);
+            resolve(null);
+        }
+    });
 }
 
 // Synchronous clipboard write that does not require the async API's focus
