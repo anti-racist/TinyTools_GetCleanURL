@@ -55,7 +55,7 @@ Full details: [privacy policy](PRIVACY.md).
 
 Compatible with most Chromium-based browsers, including Google Chrome, Microsoft Edge and Vivaldi.
 
-## What is new in 2.0.1
+## What is new in 2.1
 
 - Parameters that are kept now stay exactly as they were. Removing a tracker
   used to re-encode the rest of the link, which garbled non-UTF-8 search terms
