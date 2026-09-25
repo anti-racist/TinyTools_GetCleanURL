@@ -10,7 +10,7 @@ Click the extension icon: the current page's link is cleaned and copied.
 Press **Copy all open tabs**: every tab in every window is cleaned, duplicates
 merged, one link per line.
 
-Removed everywhere: `utm_*`, `fbclid`, `gclid`, `mc_eid` and 38 more, plus the
+Removed everywhere: `utm_*`, `fbclid`, `gclid`, `mc_eid` and 45 more, plus the
 `fb_`, `pk_`, `mtm_` and `hsa_` families. Kept: anything that changes what the
 page shows, and `ref`, `referrer`, `source`, which mean something real on plenty
 of sites. Four sites have their own rules — Amazon (affiliate and session
@@ -55,18 +55,9 @@ Full details: [privacy policy](PRIVACY.md).
 
 Compatible with most Chromium-based browsers, including Google Chrome, Microsoft Edge and Vivaldi.
 
-## What is new in 2.1
+## What is new in 2.2
 
-- Parameters that are kept now stay exactly as they were. Removing a tracker
-  used to re-encode the rest of the link, which garbled non-UTF-8 search terms
-  (Baidu) and broke `#!/` page routes.
-- Google Search results pages: session and telemetry parameters removed,
-  including AI Mode's `mstk`, `csuir` and `mtid`. Other Google services are
-  left alone.
-- A username and password in a link (`user:pass@`) are removed before copying.
-- Amazon Turkey (`amazon.com.tr`), Belgium and Egypt recognised; so are
-  addresses written with a trailing dot.
-- Vivaldi: with several windows open, the tab copied is the one in the window
-  you clicked in, never another window's.
-- Declining the tabs permission no longer blanks a result the popup had
-  already copied.
+- More trackers removed: Google's cross-domain `_gl` and Google Ads'
+  `gad_campaignid`, HubSpot's `__hstc`, `__hssc` and `__hsfp`, and
+  MailerLite's `ml_subscriber` and `ml_subscriber_hash`.
+- Reddit: the `share_id` its Share button adds is removed.
