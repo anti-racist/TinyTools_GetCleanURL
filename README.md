@@ -1,49 +1,31 @@
 # Get Clean URL
 
-A Chrome extension that strips tracking parameters off a link and puts the clean
-version on your clipboard — one tab, or every open tab at once.
+Get Clean URL removes the tracking parts of a link and copies the clean version,
+for the page you're on or for every open tab at once.
 
-## What it does
+## What's New in 2.2
 
-Click the extension icon: the current page's link is cleaned and copied.
+- **Removes more trackers,** including ones added by Google, HubSpot and
+  MailerLite, and the share ID Reddit adds to links from its Share button.
 
-Press **Copy all open tabs**: every tab in every window is cleaned, duplicates
-merged, one link per line.
+## Key Features
 
-Removed everywhere: `utm_*`, `fbclid`, `gclid`, `mc_eid` and 45 more, plus the
-`fb_`, `pk_`, `mtm_` and `hsa_` families. Kept: anything that changes what the
-page shows, and `ref`, `referrer`, `source`, which mean something real on plenty
-of sites. Four sites have their own rules — Amazon (affiliate and session
-parameters; product links collapsed to `/dp/<ASIN>`), YouTube (`si`), Bing
-(`cvid`, `FORM`) and Google Search (`ved`, `ei`, `oq`, `gs_*` and other session
-and telemetry values, on results pages only).
+- Cleans the current page's link and copies it in one click
+- Cleans every open tab at once, one link per line, duplicates merged
+- Keeps everything the page needs, so the clean link opens the same page
+- Shortens Amazon product links to the product itself
 
-On pages it cannot read — `chrome://`, the extension gallery, a blank new tab —
-it does nothing and leaves the clipboard alone.
+## How to Use
 
-## Permissions
+1. Click the Get Clean URL icon in your toolbar. The clean link is copied.
+2. To copy every open tab, click **Copy all open tabs**. The first time, your
+   browser asks to let the extension see your tabs' addresses. If you decline,
+   copying the current page still works.
 
-| Permission | For |
-| --- | --- |
-| `activeTab` | the URL of the tab the popup was opened over |
-| `clipboardWrite` | writing the cleaned link |
-| `tabs` *(optional)* | the URLs of your other tabs, for **Copy all open tabs** |
+## Tips
 
-Chrome asks for `tabs` the first time you press the button. Decline and
-single-tab copying still works. Tab titles are never read.
-
-## Install
-
-`chrome://extensions` → **Developer mode** → **Load unpacked** → this folder.
-
-## Source layout
-
-`src/rules.js` parameter lists and per-site rules, `src/cleaner.js` the cleaning,
-`src/batch.js` the multi-tab list, `src/browser.js` the Chrome APIs, `src/ui.js`
-every word the popup says.
-
-This repository holds the extension itself. The test suite and the golden
-baseline it is checked against are kept outside it.
+- Works on regular web pages, not on browser pages such as settings or a new
+  tab. There, your clipboard is left as it was.
 
 ## Privacy
 
@@ -54,10 +36,3 @@ Full details: [privacy policy](PRIVACY.md).
 ## Compatibility
 
 Compatible with most Chromium-based browsers, including Google Chrome, Microsoft Edge and Vivaldi.
-
-## What is new in 2.2
-
-- More trackers removed: Google's cross-domain `_gl` and Google Ads'
-  `gad_campaignid`, HubSpot's `__hstc`, `__hssc` and `__hsfp`, and
-  MailerLite's `ml_subscriber` and `ml_subscriber_hash`.
-- Reddit: the `share_id` its Share button adds is removed.
