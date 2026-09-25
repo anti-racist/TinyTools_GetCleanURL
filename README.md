@@ -11,7 +11,7 @@ Removes the tracking parts of a link and copies the clean version.
 
 - Removes tracking parameters from a link and copies the clean link in one click
 - Copies every open tab as a clean list, one link per line, with duplicates merged
-- Shortens Amazon and Walmart product links to the product itself
+- Shortens product links from major online stores to the product itself
 
 ## How to Use
 
