@@ -6,7 +6,7 @@ Get Clean URL is a browser extension published by Maggie Mao.
 
 ## In short
 
-- Nothing leaves your browser. The extension has no server, no account,
+- The extension sends nothing anywhere. It has no server, no account,
   no analytics and no network code.
 - It stores nothing. It reads a link, cleans it, and puts it on your
   clipboard.

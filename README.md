@@ -19,7 +19,7 @@ Removes the tracking parts of a link and copies the clean version.
 
 ## Privacy
 
-Nothing leaves your browser, and the extension has no server.
+The extension sends nothing anywhere and has no server.
 
 Full details: [privacy policy](PRIVACY.md).
 
