@@ -13,7 +13,17 @@ export const trackingParams = {
         'gclid', 'gclsrc', 'dclid',
         // gbraid and wbraid are what Google Ads issues where gclid cannot be
         // set; gad_source and srsltid ride along on ad and Shopping clicks.
-        'gbraid', 'wbraid', 'gad_source', 'srsltid'
+        'gbraid', 'wbraid', 'gad_source', 'srsltid',
+        // gad_campaignid is the campaign number Google Ads started adding
+        // beside gad_source in 2025. _gl is the Google tag's cross-domain
+        // linker: a client ID and timestamp carried from one site to the
+        // next. Both are stripped by AdGuard with no site exceptions, and _gl
+        // by ClearURLs as well.
+        //
+        // _ga, the older linker, is deliberately absent: AdGuard makes an
+        // exception for it on AliExpress sign-in, so it is not harmless
+        // everywhere.
+        'gad_campaignid', '_gl'
     ],
     microsoft: ['msclkid'],
     social: [
@@ -22,12 +32,17 @@ export const trackingParams = {
     ],
     email: [
         'vero_id', 'email_id', 'email_campaign', 'email_source', 'email_placement',
-        'mc_cid', 'mc_eid', 'mkt_tok'
+        'mc_cid', 'mc_eid', 'mkt_tok',
+        // MailerLite's subscriber identifiers.
+        'ml_subscriber', 'ml_subscriber_hash'
     ],
     other: [
         'yclid', 'ocid', '_hsenc', '_hsmi',
         'zanpid', 'icid', 'mpid', 'ysclid', 's_kwcid', 'trk', 'trkCampaign', 'trkContact',
-        'ga_cid', 'pk_campaign', 'pk_kwd', 'vero_conv'
+        'ga_cid', 'pk_campaign', 'pk_kwd', 'vero_conv',
+        // HubSpot's visitor cookies copied into the link, beside the _hsenc
+        // and _hsmi above.
+        '__hstc', '__hssc', '__hsfp'
     ]
 };
 
@@ -127,6 +142,34 @@ const twitterParams = new Set(['s', 't', 'ref_src', 'ref_url']);
 
 const facebookParams = new Set(['mibextid']);
 
+// What Reddit's Share button appends: a different value every time the same
+// post is shared, like YouTube's `si`. ClearURLs strips it on Reddit. Far too
+// ordinary a name to strip anywhere else.
+//
+// solution, js_challenge and jsc_token are added by Reddit's bot check when it
+// redirects back to the page that was asked for: a one-time token, not part of
+// the page. Tested: the link without them is the link that was opened.
+const redditParams = new Set(['share_id', 'solution', 'js_challenge', 'jsc_token']);
+
+// --- Walmart ----------------------------------------------------------------
+
+// A product page is /ip/<name>/<item id>, or /ip/<item id>. Colour and size
+// each have their own item id, so the path alone is the product. Tested: a
+// link from Google Shopping (?wl13=...&wmlspartner=...&selectedSellerId=0&
+// veh=seo_sll&cn=...) opens the same product, colour, size and price with its
+// query removed, and so does every other colour and size tried.
+function walmartProductPath(pathParts) {
+    if (pathParts[0] !== 'ip') return null;
+    const last = pathParts.length - 1;
+    if (last < 1 || last > 2 || !/^\d+$/.test(pathParts[last])) return null;
+    return '/' + pathParts.join('/');
+}
+
+// Off product pages only what ClearURLs (u1, ath*) and AdGuard (from) strip on
+// Walmart.
+const walmartParams = new Set(['u1', 'from']);
+const walmartPrefixes = /^ath/;
+
 // Bing puts nine parameters beside the query. Only these two are taken:
 //
 //   cvid   a GUID identifying the search session. Results come from `q`, and
@@ -206,7 +249,15 @@ const siteRules = [
     { id: 'instagram', domains: ['instagram.com'],           params: instagramParams },
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
+    { id: 'reddit',    domains: ['reddit.com'],              params: redditParams },
     { id: 'bing',      domains: ['bing.com'],                params: bingParams },
+    {
+        id: 'walmart',
+        domains: ['walmart.com'],
+        params: walmartParams,
+        prefixes: walmartPrefixes,
+        canonicalPath: walmartProductPath
+    },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
     // Drive, where these names are nobody's business to remove. Google has
     // redirected its country domains to google.com since April 2025, so no

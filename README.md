@@ -1,72 +1,29 @@
 # Get Clean URL
 
-A Chrome extension that strips tracking parameters off a link and puts the clean
-version on your clipboard — one tab, or every open tab at once.
+Removes the tracking parts of a link and copies the clean version.
 
-## What it does
+## What's New in 2.2
 
-Click the extension icon: the current page's link is cleaned and copied.
+- ✨ Removes more tracking parameters, including those added by Google, HubSpot, MailerLite and Reddit.
+- ✨ Shortens Walmart product links to the product itself, as it already does for Amazon.
 
-Press **Copy all open tabs**: every tab in every window is cleaned, duplicates
-merged, one link per line.
+## Key Features
 
-Removed everywhere: `utm_*`, `fbclid`, `gclid`, `mc_eid` and 38 more, plus the
-`fb_`, `pk_`, `mtm_` and `hsa_` families. Kept: anything that changes what the
-page shows, and `ref`, `referrer`, `source`, which mean something real on plenty
-of sites. Four sites have their own rules — Amazon (affiliate and session
-parameters; product links collapsed to `/dp/<ASIN>`), YouTube (`si`), Bing
-(`cvid`, `FORM`) and Google Search (`ved`, `ei`, `oq`, `gs_*` and other session
-and telemetry values, on results pages only).
+- Removes tracking parameters from a link and copies the clean link in one click
+- Copies every open tab as a clean list, one link per line, with duplicates merged
+- Shortens product links from major online stores to the product itself
 
-On pages it cannot read — `chrome://`, the extension gallery, a blank new tab —
-it does nothing and leaves the clipboard alone.
+## How to Use
 
-## Permissions
-
-| Permission | For |
-| --- | --- |
-| `activeTab` | the URL of the tab the popup was opened over |
-| `clipboardWrite` | writing the cleaned link |
-| `tabs` *(optional)* | the URLs of your other tabs, for **Copy all open tabs** |
-
-Chrome asks for `tabs` the first time you press the button. Decline and
-single-tab copying still works. Tab titles are never read.
-
-## Install
-
-`chrome://extensions` → **Developer mode** → **Load unpacked** → this folder.
-
-## Source layout
-
-`src/rules.js` parameter lists and per-site rules, `src/cleaner.js` the cleaning,
-`src/batch.js` the multi-tab list, `src/browser.js` the Chrome APIs, `src/ui.js`
-every word the popup says.
-
-This repository holds the extension itself. The test suite and the golden
-baseline it is checked against are kept outside it.
+1. Click the Get Clean URL icon in the toolbar. The clean link is copied immediately.
+2. To copy every open tab, click **Copy all open tabs**.
 
 ## Privacy
 
-We do not collect any user data. Nothing you type is ever sent to us.
+The extension sends nothing anywhere, stores nothing and has no server. Access to other tabs is requested only when **Copy all open tabs** is first used.
 
 Full details: [privacy policy](PRIVACY.md).
 
 ## Compatibility
 
 Compatible with most Chromium-based browsers, including Google Chrome, Microsoft Edge and Vivaldi.
-
-## What is new in 2.1
-
-- Parameters that are kept now stay exactly as they were. Removing a tracker
-  used to re-encode the rest of the link, which garbled non-UTF-8 search terms
-  (Baidu) and broke `#!/` page routes.
-- Google Search results pages: session and telemetry parameters removed,
-  including AI Mode's `mstk`, `csuir` and `mtid`. Other Google services are
-  left alone.
-- A username and password in a link (`user:pass@`) are removed before copying.
-- Amazon Turkey (`amazon.com.tr`), Belgium and Egypt recognised; so are
-  addresses written with a trailing dot.
-- Vivaldi: with several windows open, the tab copied is the one in the window
-  you clicked in, never another window's.
-- Declining the tabs permission no longer blanks a result the popup had
-  already copied.
