@@ -19,7 +19,7 @@ Removes the tracking parts of a link and copies the clean version.
 
 ## Privacy
 
-We do not collect any user data. Nothing you type is ever sent to us.
+Nothing leaves your browser, and the extension has no server.
 
 Full details: [privacy policy](PRIVACY.md).
 
