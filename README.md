@@ -4,7 +4,7 @@ Removes the tracking parts of a link and copies the clean version.
 
 ## What's New in 2.2
 
-- Removes more trackers, including ones from Google, HubSpot, MailerLite and Reddit.
+- ✨ Removes more trackers, including ones from Google, HubSpot, MailerLite and Reddit.
 
 ## Key Features
 
