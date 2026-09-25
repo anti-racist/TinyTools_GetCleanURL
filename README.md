@@ -5,12 +5,13 @@ Removes the tracking parts of a link and copies the clean version.
 ## What's New in 2.2
 
 - ✨ Removes more tracking parameters, including those added by Google, HubSpot, MailerLite and Reddit.
+- ✨ Shortens Walmart product links to the product itself, as it already does for Amazon.
 
 ## Key Features
 
 - Removes tracking parameters from a link and copies the clean link in one click
 - Copies every open tab as a clean list, one link per line, with duplicates merged
-- Shortens Amazon product links to the product itself
+- Shortens Amazon and Walmart product links to the product itself
 
 ## How to Use
 

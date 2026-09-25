@@ -145,7 +145,30 @@ const facebookParams = new Set(['mibextid']);
 // What Reddit's Share button appends: a different value every time the same
 // post is shared, like YouTube's `si`. ClearURLs strips it on Reddit. Far too
 // ordinary a name to strip anywhere else.
-const redditParams = new Set(['share_id']);
+//
+// solution, js_challenge and jsc_token are added by Reddit's bot check when it
+// redirects back to the page that was asked for: a one-time token, not part of
+// the page. Tested: the link without them is the link that was opened.
+const redditParams = new Set(['share_id', 'solution', 'js_challenge', 'jsc_token']);
+
+// --- Walmart ----------------------------------------------------------------
+
+// A product page is /ip/<name>/<item id>, or /ip/<item id>. Colour and size
+// each have their own item id, so the path alone is the product. Tested: a
+// link from Google Shopping (?wl13=...&wmlspartner=...&selectedSellerId=0&
+// veh=seo_sll&cn=...) opens the same product, colour, size and price with its
+// query removed, and so does every other colour and size tried.
+function walmartProductPath(pathParts) {
+    if (pathParts[0] !== 'ip') return null;
+    const last = pathParts.length - 1;
+    if (last < 1 || last > 2 || !/^\d+$/.test(pathParts[last])) return null;
+    return '/' + pathParts.join('/');
+}
+
+// Off product pages only what ClearURLs (u1, ath*) and AdGuard (from) strip on
+// Walmart.
+const walmartParams = new Set(['u1', 'from']);
+const walmartPrefixes = /^ath/;
 
 // Bing puts nine parameters beside the query. Only these two are taken:
 //
@@ -228,6 +251,13 @@ const siteRules = [
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
     { id: 'reddit',    domains: ['reddit.com'],              params: redditParams },
     { id: 'bing',      domains: ['bing.com'],                params: bingParams },
+    {
+        id: 'walmart',
+        domains: ['walmart.com'],
+        params: walmartParams,
+        prefixes: walmartPrefixes,
+        canonicalPath: walmartProductPath
+    },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
     // Drive, where these names are nobody's business to remove. Google has
     // redirected its country domains to google.com since April 2025, so no
