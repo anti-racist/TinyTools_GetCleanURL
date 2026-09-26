@@ -1,6 +1,6 @@
 # Get Clean URL
 
-Removes tracking parameters from URLs, producing clean links for users to share.
+A lightweight tool that tidies up links with one click—clean, simple, and easy to share.
 
 ## What's New in 2.2
 
