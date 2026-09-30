@@ -25,7 +25,11 @@ export const trackingParams = {
         // everywhere.
         'gad_campaignid', '_gl'
     ],
-    microsoft: ['msclkid'],
+    // msockid is added by Bing results and by Edge: the browser's MUID
+    // cookie, 32 hex digits. Neither AdGuard nor ClearURLs lists it. Tested
+    // on a Verizon page: the server returned the same bytes without it, and
+    // the page's canonical link leaves it out.
+    microsoft: ['msclkid', 'msockid'],
     social: [
         'fbclid', 'igshid', 'cmpid', 'twclid', 'tblci',
         'ttclid', 'li_fat_id', 'epik', 'rdt_cid'
@@ -42,7 +46,10 @@ export const trackingParams = {
         'ga_cid', 'pk_campaign', 'pk_kwd', 'vero_conv',
         // HubSpot's visitor cookies copied into the link, beside the _hsenc
         // and _hsmi above.
-        '__hstc', '__hssc', '__hsfp'
+        '__hstc', '__hssc', '__hsfp',
+        // Stripped globally by both AdGuard and ClearURLs, with no AdGuard
+        // exception for any site.
+        'hsCtaTracking', '_openstat', 'rb_clickid', 's_cid', 'wickedid'
     ]
 };
 
