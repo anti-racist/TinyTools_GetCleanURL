@@ -389,11 +389,14 @@ const threadsParams = new Set(['xmt', 'slof']);
 // the same job without trk, refId and trackingId. currentJobId and the rest
 // of a job link are kept.
 //
-// midToken, midSig, eid and otpToken came on a notification email's link as
-// well, but that link's profile no longer exists, so they are untested and on
-// neither list. Left alone until a working link shows the page is the same.
+// midToken, midSig and eid identify the recipient and the email they came in.
+// On neither list; tested on a LinkedIn email's help-page link, which opens the
+// same page without them (lang is kept). otpToken, seen beside them once on a
+// link whose page no longer exists, is left alone until a working link shows
+// the same.
 const linkedinParams = new Set([
-    'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer'
+    'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
+    'midToken', 'midSig', 'eid'
 ]);
 const linkedinPrefixes = /^trk/;
 
