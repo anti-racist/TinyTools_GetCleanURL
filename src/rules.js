@@ -38,7 +38,14 @@ export const trackingParams = {
         'vero_id', 'email_id', 'email_campaign', 'email_source', 'email_placement',
         'mc_cid', 'mc_eid', 'mkt_tok',
         // MailerLite's subscriber identifiers.
-        'ml_subscriber', 'ml_subscriber_hash'
+        'ml_subscriber', 'ml_subscriber_hash',
+        // Klaviyo's _kx is the subscriber's identity, which Klaviyo's site
+        // script reads to recognise them; bxid carries the same profile ID
+        // that utm_klaviyo_id does beside it. Salesforce Marketing Cloud's
+        // sfmc_sub is the subscriber number. Each one names who the email
+        // was sent to, not what the page is. Tested on Muji and
+        // Bloomingdale's email links: the same page without them.
+        '_kx', 'bxid', 'sfmc_sub'
     ],
     other: [
         'yclid', 'ocid', '_hsenc', '_hsmi',
@@ -49,7 +56,74 @@ export const trackingParams = {
         '__hstc', '__hssc', '__hsfp',
         // Stripped globally by both AdGuard and ClearURLs, with no AdGuard
         // exception for any site.
-        'hsCtaTracking', '_openstat', 'rb_clickid', 's_cid', 'wickedid'
+        'hsCtaTracking', '_openstat', 'rb_clickid', 's_cid', 'wickedid',
+        // On ClearURLs' global list: Echobox, which news sites use to post to
+        // social media, and two email tags (Mailchimp's mc_tc).
+        'Echobox', 'mc_tc', 'tracking_source'
+    ],
+    // The coverage pass of 2.3: names on AdGuard's global list, each named
+    // there for a tracking vendor and with no AdGuard exception on any site.
+    // Held back: names ordinary enough to mean something elsewhere (janet,
+    // ftag, eurl, btag, gci, maf, awc, taid, x-source, link_source, adfrom,
+    // recommended_by, int_*), and every name AdGuard exempts somewhere (_ga,
+    // elq*, cuid, a8, tduid, oly_* and the rest).
+    affiliate: [
+        'pjclid', 'x-clickref', 'x-a-medium', 'ranMID', 'ranEAID', 'ranSiteID',
+        'tgclid', 'bance_xuid', 'winflncrtag', 'vs_campaign_id',
+        'adsterra_clid', 'adsterra_placement_id', 'loclid', 'cstrackid',
+        'cjdata', 'cjevent', 'sscid', 'rtkcid', 'irgwc',
+        'ir_campaignid', 'ir_adid', 'ir_partnerid', 'asgtbndr', 'famad_xuid',
+        'admitad_uid', 'aiad_clid', 'bemobdata', 'jmtyClId', 'Tcsack',
+        'oprtrack', 'fbadid', 'nb_placement', 'nb_expid_meta', 'nx_source',
+        '_zucks_suid'
+    ],
+    // LINE and Yahoo! JAPAN ads, AD EBiS.
+    japan: [
+        'ldtag_cl', 'lt_r', 'srclt', '_ly_c', '_ly_r', 'yj_r', 'line_uid',
+        'adc_publisher', 'adc_token', 'uzcid', 'beyond_uzcvid',
+        'beyond_uzmcvid', '_bdadid', 'ebisAdID',
+        'ebisOther1', 'ebisOther2', 'ebisOther3', 'ebisOther4', 'ebisOther5'
+    ],
+    // App-install attribution: MyTracker, AppsFlyer, Adjust, Branch.
+    apps: [
+        'mt_click_id', 'mt_network', 'mt_campaign', 'mt_adset', 'mt_creative',
+        'mt_medium', 'mt_sub1', 'mt_sub2', 'mt_sub3', 'mt_sub4', 'mt_sub5',
+        'mt_link_id',
+        'af_xp', 'af_ad', 'af_adset', 'af_click_lookback', 'af_force_deeplink',
+        'is_retargeting',
+        'adj_label', 'adj_campaign', 'adj_creative', 'gps_adid',
+        'unicorn_click_id', 'adjust_creative', 'adjust_tracker_limit',
+        'adjust_tracker', 'adjust_adgroup', 'adjust_campaign',
+        'adjust_referrer', 'external_click_id',
+        '_branch_referrer', '_branch_match_id'
+    ],
+    // Email and SMS platforms: Blueshift, Emarsys, Mindbox, Triple Whale and
+    // others that put the recipient into the link.
+    messaging: [
+        'eml-name', 'eml-mediaplan', 'eml-publisher', '_bhlid',
+        'ems_dl', 'emcs_t', 'mindbox-click-id', 'mindbox-message-key',
+        'tw_medium', 'tw_profile_id', 'tw_source',
+        'bsft_clkid', 'bsft_eid', 'bsft_mid', 'bsft_uid', 'bsft_aaid', 'bsft_ek',
+        'sms_click', 'sms_source', 'sms_uph', 'user_email_address'
+    ],
+    // Analytics suites' campaign tags.
+    analytics: [
+        'at_campaign', 'at_campaign_type', 'at_creation', 'at_emailtype',
+        'at_link', 'at_link_id', 'at_link_origin', 'at_link_type',
+        'at_medium', 'at_ptr_name', 'at_recipient_id', 'at_recipient_list',
+        'at_send_date', 'xtor', 'wt_mc', 'cm_me', 'cm_cr',
+        'adobe_mc_ref', 'adobe_mc_sdid', 'clckid', 'ym_tracking_id',
+        'itm_source', 'itm_medium', 'itm_campaign', 'itm_content', 'itm_term',
+        'dpg_source', 'dpg_campaign', 'dpg_medium', 'dpg_content',
+        '_sgm_campaign', '_sgm_term', '_sgm_pinned', '_sgm_source', '_sgm_action',
+        'personaclick_search_query', 'personaclick_input_query',
+        'cx_click', 'cx_recsOrder', 'cx_recsWidget',
+        'vsm_type', 'vsm_cid', 'vsm_pid', '__io_lv', '_io_session_id',
+        '_clde', '_cldee', 'analytics_context', 'spot_im_redirect_source',
+        'usqp',
+        // Yahoo's consent redirect and Facebook's share dialog.
+        'guccounter', 'guce_referrer', 'guce_referrer_sig',
+        'action_object_map', 'action_ref_map', 'action_type_map'
     ]
 };
 
@@ -67,7 +141,9 @@ export const globalTrackingParams = fold(Object.values(trackingParams).flat());
 // `mtm_` is Matomo's current name for the family `pk_` used to carry; `hsa_`
 // is HubSpot's ads family, a dozen keys that no explicit list would keep up
 // with.
-export const trackingPrefixes = /^(fb_|pk_|hsa_|mtm_)/;
+// `cm_mmc` is Coremetrics' marketing campaign family (cm_mmc, cm_mmca1 ...
+// cm_mmca15), which AdGuard strips everywhere.
+export const trackingPrefixes = /^(fb_|pk_|hsa_|mtm_|cm_mmc)/;
 
 // --- Amazon -----------------------------------------------------------------
 
@@ -78,7 +154,13 @@ const amazonParams = new Set([
     'tag', 'ref', 'ref_', 'refRID', 'pd_rd_r', 'pd_rd_w', 'pd_rd_wg',
     'pf_rd_p', 'pf_rd_r', 'pf_rd_s', 'pf_rd_t', 'pf_rd_i', 'pf_rd_m',
     '_encoding', 'smid', 'th', 'psc', 'linkId', 'linkCode', 'camp',
-    'creative', 'creativeASIN', 'ascsubtag', 'asc_refurl', 'asc_campaign'
+    'creative', 'creativeASIN', 'ascsubtag', 'asc_refurl', 'asc_campaign',
+    // What a search results page adds beside the query `k`: crid is a search
+    // session ID, qid the time of the search, and sprefix what had been typed
+    // when a suggestion was picked. Both lists strip qid; crid and sprefix are
+    // in ClearURLs' Amazon search rules. Tested: a search link without them
+    // gives the same results in the same order.
+    'crid', 'sprefix', 'qid'
 ]);
 
 // Scoped for the same reason as the list above: `ref_` and `sc_` are Amazon
@@ -95,6 +177,12 @@ const amazonDomains = [
     // never matched it, so Turkish links kept their affiliate tags.
     'amazon.com.tr', 'amazon.com.be', 'amazon.eg'
 ];
+
+// Off product pages Amazon puts its click tracking in the path rather than the
+// query: /ref=nav_logo, /gp/bestsellers/toys-and-games/ref=zg_bs_nav_0. That
+// segment is dropped wherever it appears, as ClearURLs does on every Amazon
+// URL. Tested: amazon.com/ref=nav_logo without it is the same home page.
+const amazonPathTracking = /^ref=/i;
 
 // A product identifier is only trusted directly after one of these segments:
 // /dp/<ASIN>, /gp/product/<ASIN>, /gp/aw/d/<ASIN>.
@@ -125,12 +213,18 @@ function amazonProductPath(pathParts) {
 // sites, so each is scoped to the site that mints it. Stripping any of them
 // globally would rewrite links rather than clean them.
 
-// `si` only. It is a different value every time the same video is shared, so
-// it can only be identifying the share rather than describing the video.
+// `si` is a different value every time the same video is shared, so it can
+// only be identifying the share rather than describing the video.
+//
+// `feature` names the way the video was reached - youtu.be, shared,
+// player_embedded - never which video it is or where it starts. A youtu.be
+// share link redirects to /watch?v=...&feature=youtu.be, so it turned up on
+// a real link. ClearURLs strips it on YouTube. Tested: the same video plays
+// without it.
 //
 // `pp` was here and has been taken out: it is a base64 blob that very probably
 // does not affect playback, and "very probably" is not evidence.
-const youtubeParams = new Set(['si']);
+const youtubeParams = new Set(['si', 'feature']);
 
 // `t` is deliberately absent above. On YouTube it is the playback timestamp
 // (?t=43s), so removing it would break a "start at 0:43" link - while on X the
@@ -145,7 +239,9 @@ const instagramParams = new Set(['igsh']);
 
 // `s` and `t` come from the Share sheet, `ref_src` and `ref_url` from embedded
 // timelines. The `ref_` prefix belongs to Amazon, so these two need naming.
-const twitterParams = new Set(['s', 't', 'ref_src', 'ref_url']);
+//
+// `cn` is a share-campaign token on X's links; ClearURLs strips it there.
+const twitterParams = new Set(['s', 't', 'cn', 'ref_src', 'ref_url']);
 
 const facebookParams = new Set(['mibextid']);
 
@@ -177,20 +273,132 @@ function walmartProductPath(pathParts) {
 const walmartParams = new Set(['u1', 'from']);
 const walmartPrefixes = /^ath/;
 
-// Bing puts nine parameters beside the query. Only these two are taken:
+// Bing puts nine parameters beside the query. Taken:
 //
 //   cvid   a GUID identifying the search session. Results come from `q`, and
 //          the page is unchanged without it.
 //   FORM   which entry point the search came from - QBRE is the search box.
 //          Pure attribution.
+//   sk, sp, sc, qs
+//          how the query was picked from the autocomplete list: its
+//          position, the suggestion count and type. ClearURLs strips them on
+//          Bing, and qp as well, which has not been seen on a real link.
 //
-// The rest - qs, pq, sk, sc, sp, ghc, lq - are left alone. Several look like
-// telemetry as well, and `pq` even carries what was typed before autocomplete
-// finished, but what any of them do to the page is a guess.
+// Left alone: pq, which carries what was typed before autocomplete finished
+// and is the clearest leak of the lot, but is on neither list; and ghc, lq.
 //
 // Scoped to Bing, FORM especially: matching folds case, so a global rule
 // would take `form=` off every site that has one.
-const bingParams = new Set(['cvid', 'FORM']);
+const bingParams = new Set(['cvid', 'FORM', 'sk', 'sp', 'sc', 'qs']);
+
+// --- eBay -------------------------------------------------------------------
+
+// What a search result adds to an item link (/itm/<item id>):
+//
+//   _skw      the search that found the item
+//   itmmeta   an opaque ID of the results page it was clicked from
+//   itmprp    an encoded record of the click
+//   hash      an item and image hash beside the ID already in the path
+//
+// AdGuard strips all four on eBay, and ClearURLs strips hash as well. Tested
+// on two items: the same listing and price without them.
+//
+// `var` is deliberately kept: it is the variant chosen, and without it the
+// listing opens on its default variant. AdGuard took its own eBay rule for it
+// out for the same reason.
+const ebayParams = new Set(['_skw', 'itmmeta', 'itmprp', 'hash']);
+
+const ebayDomains = [
+    'ebay.com', 'ebay.co.uk', 'ebay.de', 'ebay.fr', 'ebay.it', 'ebay.es',
+    'ebay.ca', 'ebay.com.au', 'ebay.at', 'ebay.ch', 'ebay.ie', 'ebay.nl',
+    'ebay.be', 'ebay.pl', 'ebay.com.sg', 'ebay.com.my', 'ebay.ph', 'ebay.com.hk'
+];
+
+// --- Target -----------------------------------------------------------------
+
+// What a Google Shopping ad adds to a product page (/p/<name>/-/A-<id>), on
+// top of the gclid family that is already stripped everywhere. AdGuard strips
+// every one of these on target.com except sid, which arrived empty. Tested: a
+// product page reached from an ad opens with the same product, price and
+// pickup store without any of them.
+//
+// Product pages only. ref, network, device and location are ordinary words,
+// and Target's search and account pages are not where they were seen.
+const targetParams = new Set([
+    'sid', 'ref', 'AFID', 'fndsrc', 'DFA', 'CPNG', 'adgroup', 'LID',
+    'network', 'device', 'location'
+]);
+
+// --- Email links ------------------------------------------------------------
+
+// Bloomingdale's sends email through Salesforce Marketing Cloud, which adds its link-tracking
+// set - j (job), l (list), u (link), mid (account), jb (batch) - beside the
+// subscriber number. cm_ven, cm_cat, cm_pla and cm_ite are Coremetrics'
+// campaign tags, uid and smtrctid the subscriber again, and the mi_ family
+// belongs to Movable Ink, which builds the email's images. Tested: a product
+// link from an email opens the same product with only ID left.
+//
+// Every one of these but the cm_ names is far too short or ordinary to strip
+// anywhere else, so the row covers this one store. Macy's is the same company,
+// but a Macy's link seen so far carried none of these, so it is not included.
+const bloomingdalesParams = new Set([
+    'j', 'l', 'u', 'mid', 'jb', 'cm_ven', 'cm_cat', 'cm_pla', 'cm_ite',
+    'uid', 'smtrctid'
+]);
+const bloomingdalesPrefixes = /^mi_/;
+
+// Muji's email links add campaign_medium and a recommendation engine's
+// _su_rec and _su_rec_id beside the utm_ set: a long encoded token and a
+// per-click ID. Tested: the same collection, in the same sort order, without
+// them. sort_by is kept.
+const mujiParams = new Set(['campaign_medium']);
+const mujiPrefixes = /^_su_rec/;
+
+// Yelp's email links (sent through Braze) add nid and ytl_, both the same
+// 32-hex-digit value: who the email went to. Tested: the same search, in the
+// same place, without them. find_desc and find_loc are the search and kept.
+const yelpParams = new Set(['nid', 'ytl_']);
+
+// --- More shops and Medium -------------------------------------------------
+
+// What a search result adds to a product page on each of these. Each row is
+// limited to product pages and was tested on a real link from a search: the
+// same product, variant and price without these.
+
+// Etsy, /listing/<id>/<name>. ga_* (ClearURLs strips it everywhere) and ref
+// (AdGuard, on Etsy) describe the search; click_key, click_sum and
+// organic_search_click are on the lists but were not on the link. The rest
+// are on neither list; they arrived on the same click and were tested with it.
+const etsyParams = new Set([
+    'ls', 'ref', 'sr_prefetch', 'pf_from', 'frs', 'bes', 'sts', 'plkey',
+    'click_key', 'click_sum', 'organic_search_click'
+]);
+const etsyPrefixes = /^ga_/;
+
+// Shein, /<name>-p-<id>.html. src_module, src_tab_page_id and mallCode are
+// AdGuard's.
+const sheinParams = new Set([
+    'imgRatio', 'detailBusinessFrom', 'src_identifier', 'src_module',
+    'src_tab_page_id', 'mallCode', 'pageListType'
+]);
+
+// AliExpress, /item/<id>.html. spm and algo_pvid are on both lists, the rest
+// on AdGuard's but pdp_ext_f, which arrived beside them.
+const aliexpressParams = new Set([
+    'spm', 'algo_pvid', 'algo_exp_id', 'pdp_ext_f', 'pdp_npi',
+    'curPageLogUid', 'utparam-url'
+]);
+
+// Temu, /<name>-g-<id>.html. All AdGuard's but search_key, the search typed.
+const temuParams = new Set([
+    'top_gallery_url', 'spec_gallery_id', 'refer_page_sn', 'refer_page_el_sn',
+    'refer_page_name', 'refer_page_id', 'freesia_scene', 'search_key'
+]);
+const temuPrefixes = /^(_oak_|_x_)/;
+
+// Medium's Copy link button adds ?source=copy_link. Both lists strip `source`
+// on Medium; it is far too ordinary a name to strip anywhere else.
+const mediumParams = new Set(['source']);
 
 // --- Google Search ----------------------------------------------------------
 
@@ -240,6 +448,9 @@ const googleSearchPrefixes = /^gs_/;
 // path, when present, limits the row to pages whose path it matches; anywhere
 // else on the site the row does not apply at all.
 //
+// pathTracking, when present, matches whole path segments that are tracking
+// rather than part of the page; each one found is dropped from the path.
+//
 // canonicalPath(pathParts) returning a path means this URL has one true form
 // and everything else on it - query and fragment alike - is noise. Returning
 // null means the page keeps its path and is cleaned like any other.
@@ -249,6 +460,7 @@ const siteRules = [
         domains: amazonDomains,
         params: amazonParams,
         prefixes: amazonPrefixes,
+        pathTracking: amazonPathTracking,
         canonicalPath: amazonProductPath
     },
     { id: 'youtube',   domains: ['youtube.com', 'youtu.be'], params: youtubeParams },
@@ -265,6 +477,26 @@ const siteRules = [
         prefixes: walmartPrefixes,
         canonicalPath: walmartProductPath
     },
+    {
+        id: 'bloomingdales',
+        domains: ['bloomingdales.com'],
+        params: bloomingdalesParams,
+        prefixes: bloomingdalesPrefixes
+    },
+    { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
+    { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
+    { id: 'etsy',   domains: ['etsy.com'], params: etsyParams, prefixes: etsyPrefixes, path: /^\/listing\// },
+    { id: 'shein',  domains: ['shein.com', 'shein.co.uk'], params: sheinParams, path: /-p-\d+\.html$/ },
+    {
+        id: 'aliexpress',
+        domains: ['aliexpress.us', 'aliexpress.com'],
+        params: aliexpressParams,
+        path: /^\/item\//
+    },
+    { id: 'temu',   domains: ['temu.com'], params: temuParams, prefixes: temuPrefixes, path: /-g-\d+\.html$/ },
+    { id: 'medium', domains: ['medium.com'], params: mediumParams },
+    { id: 'ebay',      domains: ebayDomains,   params: ebayParams,   path: /^\/itm\// },
+    { id: 'target',    domains: ['target.com'], params: targetParams, path: /^\/p\// },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
     // Drive, where these names are nobody's business to remove. Google has
     // redirected its country domains to google.com since April 2025, so no

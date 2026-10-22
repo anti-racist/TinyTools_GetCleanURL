@@ -118,8 +118,12 @@ function countParams(raw) {
 // case-sensitive lookup let every one of them through. Only the comparison is
 // folded - a parameter that survives is re-appended under the spelling it
 // arrived with, so ?ProductID= never comes back as ?productid=.
+//
+// One stray '?' in front of a name is read past: a doubled ?? or an encoded
+// %3F (which arrives here decoded) put it there, and ?utm_source= is still
+// utm_source. The pair itself is kept or dropped whole, as any other.
 function isTrackingParam(key, rule) {
-    const name = key.toLowerCase();
+    const name = (key.startsWith('?') ? key.slice(1) : key).toLowerCase();
     if (globalTrackingParams.has(name)) return true;
     if (name.startsWith('utm_') || trackingPrefixes.test(name)) return true;
     if (!rule) return false;
@@ -169,6 +173,20 @@ export function cleanUrl(urlString) {
             // Any other page on the site keeps its path. Truncating it to the
             // first few segments dropped real pages, turning /gp/help/customer/
             // display.html into /gp/help/customer.
+        }
+
+        // Tracking that lives in the path, such as Amazon's /ref=nav_logo.
+        // Only whole segments are dropped, and the rest of the path is kept
+        // exactly as it arrived.
+        if (rule && rule.pathTracking) {
+            const segments = url.pathname.split('/');
+            const kept = segments.filter((segment, i) =>
+                i === 0 || !rule.pathTracking.test(segment));
+            if (kept.length < segments.length) {
+                url.pathname = kept.join('/') || '/';
+                changed = true;
+                removedCount += segments.length - kept.length;
+            }
         }
 
         if (url.search) {
