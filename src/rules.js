@@ -222,9 +222,10 @@ function amazonProductPath(pathParts) {
 // a real link. ClearURLs strips it on YouTube. Tested: the same video plays
 // without it.
 //
-// `pp` was here and has been taken out: it is a base64 blob that very probably
-// does not affect playback, and "very probably" is not evidence.
-const youtubeParams = new Set(['si', 'feature']);
+// `pp` is what a video opened from search results carries: base64 holding the
+// search itself, word for word, so a shared link tells whoever opens it what
+// was searched for. On both lists. Tested: the same video plays without it.
+const youtubeParams = new Set(['si', 'feature', 'pp']);
 
 // `t` is deliberately absent above. On YouTube it is the playback timestamp
 // (?t=43s), so removing it would break a "start at 0:43" link - while on X the
@@ -343,12 +344,20 @@ const targetParams = new Set([
 //
 // Every one of these but the cm_ names is far too short or ordinary to strip
 // anywhere else, so the row covers this one store. Macy's is the same company,
-// but a Macy's link seen so far carried none of these, so it is not included.
+// but its email links carry a different set, below.
 const bloomingdalesParams = new Set([
     'j', 'l', 'u', 'mid', 'jb', 'cm_ven', 'cm_cat', 'cm_pla', 'cm_ite',
     'uid', 'smtrctid'
 ]);
 const bloomingdalesPrefixes = /^mi_/;
+
+// Macy's email links land with cm_mmc (stripped everywhere) and its own m_*
+// family - m_cn, m_l, m_pi, m_s, m_sc, m_tp, m_sb: campaign, link, position,
+// channel, journey - plus correlationId, a fresh value on every click.
+// DandelionSprout strips m_* and trackingid on Macy's too. Tested on a real
+// email link: the same sale page, with id (the category) kept.
+const macysParams = new Set(['correlationId', 'trackingid']);
+const macysPrefixes = /^m_/;
 
 // Muji's email links add campaign_medium and a recommendation engine's
 // _su_rec and _su_rec_id beside the utm_ set: a long encoded token and a
@@ -360,7 +369,128 @@ const mujiPrefixes = /^_su_rec/;
 // Yelp's email links (sent through Braze) add nid and ytl_, both the same
 // 32-hex-digit value: who the email went to. Tested: the same search, in the
 // same place, without them. find_desc and find_loc are the search and kept.
-const yelpParams = new Set(['nid', 'ytl_']);
+//
+// dd_referrer carries the page the visitor came from (a Google search, in the
+// link tested). Not on AdGuard's or ClearURLs' lists; DandelionSprout strips
+// it on another site, with the same value. Tested: the same business page
+// without it.
+const yelpParams = new Set(['nid', 'ytl_', 'dd_referrer']);
+
+// --- Social, news and streaming ----------------------------------------------
+
+// What each site's Share button, newsletter or app adds. Every row was tested
+// on a real link: the same video, post, article, episode or song without these.
+
+// TikTok. is_from_webapp, sender_device and web_id came on a video page's
+// link, _r and _t on a profile link shared from the app; the rest are what
+// AdGuard and ClearURLs strip there. Every name here is TikTok's own, so they
+// go on every TikTok page. `q` and `t` are left alone: on TikTok's search
+// pages they are the search.
+const tiktokParams = new Set([
+    'is_from_webapp', 'sender_device', 'web_id', '_r', '_t', '_d', 'u_code',
+    'share_app_id', 'share_app_name', 'share_author_id', 'share_iid',
+    'share_link_id', 'share_region', 'social_share_type', 'tt_from', 'ug_btm',
+    'embed_source', 'enter_method', 'referer_url', 'referer_video_id',
+    'sec_user_id', 'user_id', 'timestamp', 'preview_pb', 'trackParams'
+]);
+
+// Threads' Share button adds xmt (AdGuard strips it there), and sometimes
+// slof, which is on neither list but arrived beside it.
+const threadsParams = new Set(['xmt', 'slof']);
+
+// LinkedIn's emails add trk* (already stripped everywhere as trk, and here as
+// a family: trkEmail, trkInfo), lipi, trackingId, refId and the original
+// referrer, all on AdGuard's list for LinkedIn. Tested on a job-alert link:
+// the same job without trk, refId and trackingId. currentJobId and the rest
+// of a job link are kept.
+//
+// midToken, midSig and eid identify the recipient and the email they came in.
+// On neither list; tested on a LinkedIn email's help-page link, which opens the
+// same page without them (lang is kept). otpToken, seen beside them once on a
+// link whose page no longer exists, is left alone until a working link shows
+// the same.
+//
+// rcm comes on a post shared from the Android app: the sharer's member id
+// (ACoAA...), so a forwarded link says who shared it. On neither list; tested
+// on a real shared post.
+const linkedinParams = new Set([
+    'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
+    'midToken', 'midSig', 'eid', 'rcm'
+]);
+const linkedinPrefixes = /^trk/;
+
+// The New York Times: smid is the Share button's (tw-share, url-share), the
+// others its newsletters' (AdGuard). unlocked_article_code is the gift that
+// opens a paywalled article, and is kept. The Athletic adds `source` as well;
+// that name is stripped only there.
+const nytimesParams = new Set(['smid', 'sgrp', 'referringSource', 'impression_id']);
+const nytimesAthleticParams = new Set(['source']);
+
+// BBC: comScore's ns_* family on social and newsletter links (AdGuard), and
+// AT Internet's at_* (ClearURLs). xtor and ocid are stripped everywhere.
+const bbcPrefixes = /^(ns_|at_)/;
+
+// Netflix: trackId and tctx record which row and which button a title was
+// played from (both lists). The title is the path. jbv - a title id on the
+// browse page - is kept, though ClearURLs' jb* would take it.
+const netflixParams = new Set(['trackId', 'tctx']);
+
+// Apple Music: ct is Apple's campaign token and itscg and itsct its
+// marketing-tools tags (AdGuard), app which app to open (ClearURLs). at, the
+// affiliate token, and uo, ls, lId, cId, sr and src are on neither list; they
+// came from a Linkfire link beside them and were tested with it. i is the
+// song on an album page and is kept, as is mt.
+const appleMusicParams = new Set([
+    'at', 'ct', 'itscg', 'itsct', 'app', 'uo', 'ls', 'lId', 'cId', 'sr', 'src'
+]);
+
+// The Wall Street Journal's Share button adds reflink; AdGuard strips mod (the
+// spot on WSJ's own pages a link was clicked) as well. `st` comes on the same
+// share links and is kept: it does not unlock the article, but what it does do
+// is not known.
+const wsjParams = new Set(['reflink', 'mod']);
+
+// Bloomberg's newsletters add sref (tested), and AdGuard strips in_source,
+// srnd and leadSource beside it.
+const bloombergParams = new Set(['sref', 'in_source', 'srnd', 'leadSource']);
+
+// Best Buy product pages, /site/<name>/<sku>.p. Impact's irclickid, the
+// affiliate's ref and loc, and acampID (both lists); irgwc and mpid are
+// stripped everywhere. skuId is kept, and so is intl, which without it sends
+// the visitor back to the country picker.
+const bestbuyParams = new Set(['irclickid', 'ref', 'loc', 'acampID']);
+
+// CNBC's share bar adds __source (both lists) and par (AdGuard), naming the
+// button pressed: sharebar|twitter.
+const cnbcParams = new Set(['__source', 'par']);
+
+// IMDb marks every internal link with ref_ (where on the site it was
+// clicked) and Amazon's pf_rd_* placement tags; both lists strip them there.
+const imdbParams = new Set(['ref_']);
+const imdbPrefixes = /^pf_rd_/;
+
+// Climatebase job pages, /job/<id>/<name>: source names the list a job was
+// opened from (jobs_directory, a job alert). Far too ordinary a name to strip
+// anywhere else.
+const climatebaseParams = new Set(['source']);
+
+// MSN: ocid (stripped everywhere) comes as hpmsn from the home page and
+// socialshare from the Share button; AdGuard strips cvid, ei and pc beside it
+// on MSN. cvid is Bing's search-session id, and only Bing and MSN lose it.
+const msnParams = new Set(['cvid', 'ei', 'pc']);
+
+// Yahoo's Share-to-X button adds soc_src and soc_trk (DandelionSprout) and
+// tsrc; AdGuard strips src and ncid there as well.
+const yahooParams = new Set(['soc_src', 'soc_trk', 'tsrc', 'src', 'ncid']);
+
+// DuckDuckGo: origin and t say where a search was started from (h_ is the
+// home page; browsers and partners have their own); AdGuard strips both, t
+// on results pages only, and from, vis, perf_id and experiment_* as well.
+// q and ia - the search and the results tab - are kept. t is one letter, so
+// it is taken only on duckduckgo.com's results page (the root path with q).
+const duckduckgoParams = new Set(['origin', 'from', 'vis', 'perf_id', 'parent_perf_id']);
+const duckduckgoPrefixes = /^experiment_/;
+const duckduckgoSearchParams = new Set(['t']);
 
 // --- More shops and Medium -------------------------------------------------
 
@@ -475,6 +605,33 @@ const siteRules = [
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
     { id: 'reddit',    domains: ['reddit.com'],              params: redditParams },
+    { id: 'tiktok',   domains: ['tiktok.com'], params: tiktokParams },
+    { id: 'threads',  domains: ['threads.com', 'threads.net'], params: threadsParams },
+    { id: 'linkedin', domains: ['linkedin.com'], params: linkedinParams, prefixes: linkedinPrefixes },
+    {
+        id: 'nytimes',
+        domains: ['nytimes.com'],
+        params: nytimesParams,
+        within: { path: /^\/athletic\//, params: nytimesAthleticParams }
+    },
+    { id: 'bbc',      domains: ['bbc.com', 'bbc.co.uk'], prefixes: bbcPrefixes },
+    { id: 'netflix',  domains: ['netflix.com'], params: netflixParams },
+    { id: 'applemusic', domains: ['music.apple.com'], params: appleMusicParams },
+    { id: 'wsj',       domains: ['wsj.com'], params: wsjParams },
+    { id: 'bloomberg', domains: ['bloomberg.com'], params: bloombergParams },
+    { id: 'cnbc',      domains: ['cnbc.com'], params: cnbcParams },
+    { id: 'imdb',      domains: ['imdb.com'], params: imdbParams, prefixes: imdbPrefixes },
+    { id: 'climatebase', domains: ['climatebase.org'], params: climatebaseParams, path: /^\/job\// },
+    { id: 'msn',       domains: ['msn.com'], params: msnParams },
+    { id: 'yahoo',     domains: ['yahoo.com'], params: yahooParams },
+    {
+        id: 'duckduckgo',
+        domains: ['duckduckgo.com'],
+        params: duckduckgoParams,
+        prefixes: duckduckgoPrefixes,
+        within: { path: /^\/$/, params: duckduckgoSearchParams }
+    },
+    { id: 'bestbuy',   domains: ['bestbuy.com'], params: bestbuyParams, path: /^\/site\/.*\.p$/ },
     {
         id: 'bing',
         domains: ['bing.com'],
@@ -494,6 +651,7 @@ const siteRules = [
         params: bloomingdalesParams,
         prefixes: bloomingdalesPrefixes
     },
+    { id: 'macys', domains: ['macys.com'], params: macysParams, prefixes: macysPrefixes },
     { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
     { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
     { id: 'etsy',   domains: ['etsy.com'], params: etsyParams, prefixes: etsyPrefixes, path: /^\/listing\// },
