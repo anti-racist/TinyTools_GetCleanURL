@@ -344,12 +344,20 @@ const targetParams = new Set([
 //
 // Every one of these but the cm_ names is far too short or ordinary to strip
 // anywhere else, so the row covers this one store. Macy's is the same company,
-// but a Macy's link seen so far carried none of these, so it is not included.
+// but its email links carry a different set, below.
 const bloomingdalesParams = new Set([
     'j', 'l', 'u', 'mid', 'jb', 'cm_ven', 'cm_cat', 'cm_pla', 'cm_ite',
     'uid', 'smtrctid'
 ]);
 const bloomingdalesPrefixes = /^mi_/;
+
+// Macy's email links land with cm_mmc (stripped everywhere) and its own m_*
+// family - m_cn, m_l, m_pi, m_s, m_sc, m_tp, m_sb: campaign, link, position,
+// channel, journey - plus correlationId, a fresh value on every click.
+// DandelionSprout strips m_* and trackingid on Macy's too. Tested on a real
+// email link: the same sale page, with id (the category) kept.
+const macysParams = new Set(['correlationId', 'trackingid']);
+const macysPrefixes = /^m_/;
 
 // Muji's email links add campaign_medium and a recommendation engine's
 // _su_rec and _su_rec_id beside the utm_ set: a long encoded token and a
@@ -643,6 +651,7 @@ const siteRules = [
         params: bloomingdalesParams,
         prefixes: bloomingdalesPrefixes
     },
+    { id: 'macys', domains: ['macys.com'], params: macysParams, prefixes: macysPrefixes },
     { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
     { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
     { id: 'etsy',   domains: ['etsy.com'], params: etsyParams, prefixes: etsyPrefixes, path: /^\/listing\// },
