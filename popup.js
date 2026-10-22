@@ -38,7 +38,8 @@ async function copyCurrentTab(show) {
     }
 
     show(cleaned.changed
-        ? { kind: 'cleaned', url: cleaned.url, removed: cleaned.removedCount }
+        ? { kind: 'cleaned', url: cleaned.url, removed: cleaned.removedCount,
+            unwrapped: cleaned.unwrapped }
         : { kind: 'already-clean', url: cleaned.url });
 }
 

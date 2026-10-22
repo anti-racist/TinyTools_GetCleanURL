@@ -57,6 +57,70 @@ export const trackingParams = {
         // Stripped globally by both AdGuard and ClearURLs, with no AdGuard
         // exception for any site.
         'hsCtaTracking', '_openstat', 'rb_clickid', 's_cid', 'wickedid'
+    ],
+    // The coverage pass of 2.3: names on AdGuard's global list, each named
+    // there for a tracking vendor and with no AdGuard exception on any site.
+    // Held back: names ordinary enough to mean something elsewhere (janet,
+    // ftag, eurl, btag, gci, maf, awc, taid, x-source, link_source, adfrom,
+    // recommended_by, int_*), and every name AdGuard exempts somewhere (_ga,
+    // elq*, cuid, a8, tduid, oly_* and the rest).
+    affiliate: [
+        'pjclid', 'x-clickref', 'x-a-medium', 'ranMID', 'ranEAID', 'ranSiteID',
+        'tgclid', 'bance_xuid', 'winflncrtag', 'vs_campaign_id',
+        'adsterra_clid', 'adsterra_placement_id', 'loclid', 'cstrackid',
+        'cjdata', 'cjevent', 'sscid', 'rtkcid', 'irgwc',
+        'ir_campaignid', 'ir_adid', 'ir_partnerid', 'asgtbndr', 'famad_xuid',
+        'admitad_uid', 'aiad_clid', 'bemobdata', 'jmtyClId', 'Tcsack',
+        'oprtrack', 'fbadid', 'nb_placement', 'nb_expid_meta', 'nx_source',
+        '_zucks_suid'
+    ],
+    // LINE and Yahoo! JAPAN ads, AD EBiS.
+    japan: [
+        'ldtag_cl', 'lt_r', 'srclt', '_ly_c', '_ly_r', 'yj_r', 'line_uid',
+        'adc_publisher', 'adc_token', 'uzcid', 'beyond_uzcvid',
+        'beyond_uzmcvid', '_bdadid', 'ebisAdID',
+        'ebisOther1', 'ebisOther2', 'ebisOther3', 'ebisOther4', 'ebisOther5'
+    ],
+    // App-install attribution: MyTracker, AppsFlyer, Adjust, Branch.
+    apps: [
+        'mt_click_id', 'mt_network', 'mt_campaign', 'mt_adset', 'mt_creative',
+        'mt_medium', 'mt_sub1', 'mt_sub2', 'mt_sub3', 'mt_sub4', 'mt_sub5',
+        'mt_link_id',
+        'af_xp', 'af_ad', 'af_adset', 'af_click_lookback', 'af_force_deeplink',
+        'is_retargeting',
+        'adj_label', 'adj_campaign', 'adj_creative', 'gps_adid',
+        'unicorn_click_id', 'adjust_creative', 'adjust_tracker_limit',
+        'adjust_tracker', 'adjust_adgroup', 'adjust_campaign',
+        'adjust_referrer', 'external_click_id',
+        '_branch_referrer', '_branch_match_id'
+    ],
+    // Email and SMS platforms: Blueshift, Emarsys, Mindbox, Triple Whale and
+    // others that put the recipient into the link.
+    messaging: [
+        'eml-name', 'eml-mediaplan', 'eml-publisher', '_bhlid',
+        'ems_dl', 'emcs_t', 'mindbox-click-id', 'mindbox-message-key',
+        'tw_medium', 'tw_profile_id', 'tw_source',
+        'bsft_clkid', 'bsft_eid', 'bsft_mid', 'bsft_uid', 'bsft_aaid', 'bsft_ek',
+        'sms_click', 'sms_source', 'sms_uph', 'user_email_address'
+    ],
+    // Analytics suites' campaign tags.
+    analytics: [
+        'at_campaign', 'at_campaign_type', 'at_creation', 'at_emailtype',
+        'at_link', 'at_link_id', 'at_link_origin', 'at_link_type',
+        'at_medium', 'at_ptr_name', 'at_recipient_id', 'at_recipient_list',
+        'at_send_date', 'xtor', 'wt_mc', 'cm_me', 'cm_cr',
+        'adobe_mc_ref', 'adobe_mc_sdid', 'clckid', 'ym_tracking_id',
+        'itm_source', 'itm_medium', 'itm_campaign', 'itm_content', 'itm_term',
+        'dpg_source', 'dpg_campaign', 'dpg_medium', 'dpg_content',
+        '_sgm_campaign', '_sgm_term', '_sgm_pinned', '_sgm_source', '_sgm_action',
+        'personaclick_search_query', 'personaclick_input_query',
+        'cx_click', 'cx_recsOrder', 'cx_recsWidget',
+        'vsm_type', 'vsm_cid', 'vsm_pid', '__io_lv', '_io_session_id',
+        '_clde', '_cldee', 'analytics_context', 'spot_im_redirect_source',
+        'usqp',
+        // Yahoo's consent redirect and Facebook's share dialog.
+        'guccounter', 'guce_referrer', 'guce_referrer_sig',
+        'action_object_map', 'action_ref_map', 'action_type_map'
     ]
 };
 
@@ -172,7 +236,9 @@ const instagramParams = new Set(['igsh']);
 
 // `s` and `t` come from the Share sheet, `ref_src` and `ref_url` from embedded
 // timelines. The `ref_` prefix belongs to Amazon, so these two need naming.
-const twitterParams = new Set(['s', 't', 'ref_src', 'ref_url']);
+//
+// `cn` is a share-campaign token on X's links; ClearURLs strips it there.
+const twitterParams = new Set(['s', 't', 'cn', 'ref_src', 'ref_url']);
 
 const facebookParams = new Set(['mibextid']);
 
@@ -204,20 +270,23 @@ function walmartProductPath(pathParts) {
 const walmartParams = new Set(['u1', 'from']);
 const walmartPrefixes = /^ath/;
 
-// Bing puts nine parameters beside the query. Only these two are taken:
+// Bing puts nine parameters beside the query. Taken:
 //
 //   cvid   a GUID identifying the search session. Results come from `q`, and
 //          the page is unchanged without it.
 //   FORM   which entry point the search came from - QBRE is the search box.
 //          Pure attribution.
+//   sk, sp, sc, qs, qp
+//          how the query was picked from the autocomplete list: its
+//          position, the suggestion count and type. ClearURLs strips all
+//          five on Bing.
 //
-// The rest - qs, pq, sk, sc, sp, ghc, lq - are left alone. Several look like
-// telemetry as well, and `pq` even carries what was typed before autocomplete
-// finished, but what any of them do to the page is a guess.
+// Left alone: pq, which carries what was typed before autocomplete finished
+// and is the clearest leak of the lot, but is on neither list; and ghc, lq.
 //
 // Scoped to Bing, FORM especially: matching folds case, so a global rule
 // would take `form=` off every site that has one.
-const bingParams = new Set(['cvid', 'FORM']);
+const bingParams = new Set(['cvid', 'FORM', 'sk', 'sp', 'sc', 'qs', 'qp']);
 
 // --- eBay -------------------------------------------------------------------
 

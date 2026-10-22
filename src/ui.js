@@ -58,6 +58,15 @@ function lines(state) {
             // user can see got shorter, so the count is dropped but not the
             // line - the URL still visibly changed. "Shortened" is true of a
             // dropped fragment and of a path cut back to /dp/ alike.
+            //
+            // An unwrapped redirect says so: the URL copied points to another
+            // site than the one in the address bar, and that should never
+            // come as a surprise.
+            if (state.unwrapped) {
+                return ['Copied the destination URL', state.removed
+                    ? `${count(state.removed, 'tracking parameter')} removed`
+                    : null];
+            }
             return ['Copied', state.removed
                 ? `${count(state.removed, 'tracking parameter')} removed`
                 : 'Shortened'];
