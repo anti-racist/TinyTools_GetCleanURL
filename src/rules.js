@@ -56,7 +56,10 @@ export const trackingParams = {
         '__hstc', '__hssc', '__hsfp',
         // Stripped globally by both AdGuard and ClearURLs, with no AdGuard
         // exception for any site.
-        'hsCtaTracking', '_openstat', 'rb_clickid', 's_cid', 'wickedid'
+        'hsCtaTracking', '_openstat', 'rb_clickid', 's_cid', 'wickedid',
+        // On ClearURLs' global list: Echobox, which news sites use to post to
+        // social media, and two email tags (Mailchimp's mc_tc).
+        'Echobox', 'mc_tc', 'tracking_source'
     ],
     // The coverage pass of 2.3: names on AdGuard's global list, each named
     // there for a tracking vendor and with no AdGuard exception on any site.
@@ -356,6 +359,47 @@ const mujiPrefixes = /^_su_rec/;
 // same place, without them. find_desc and find_loc are the search and kept.
 const yelpParams = new Set(['nid', 'ytl_']);
 
+// --- More shops and Medium -------------------------------------------------
+
+// What a search result adds to a product page on each of these. Each row is
+// limited to product pages and was tested on a real link from a search: the
+// same product, variant and price without these.
+
+// Etsy, /listing/<id>/<name>. ga_* (ClearURLs strips it everywhere) and ref
+// (AdGuard, on Etsy) describe the search; click_key, click_sum and
+// organic_search_click are on the lists but were not on the link. The rest
+// are on neither list; they arrived on the same click and were tested with it.
+const etsyParams = new Set([
+    'ls', 'ref', 'sr_prefetch', 'pf_from', 'frs', 'bes', 'sts', 'plkey',
+    'click_key', 'click_sum', 'organic_search_click'
+]);
+const etsyPrefixes = /^ga_/;
+
+// Shein, /<name>-p-<id>.html. src_module, src_tab_page_id and mallCode are
+// AdGuard's.
+const sheinParams = new Set([
+    'imgRatio', 'detailBusinessFrom', 'src_identifier', 'src_module',
+    'src_tab_page_id', 'mallCode', 'pageListType'
+]);
+
+// AliExpress, /item/<id>.html. spm and algo_pvid are on both lists, the rest
+// on AdGuard's but pdp_ext_f, which arrived beside them.
+const aliexpressParams = new Set([
+    'spm', 'algo_pvid', 'algo_exp_id', 'pdp_ext_f', 'pdp_npi',
+    'curPageLogUid', 'utparam-url'
+]);
+
+// Temu, /<name>-g-<id>.html. All AdGuard's but search_key, the search typed.
+const temuParams = new Set([
+    'top_gallery_url', 'spec_gallery_id', 'refer_page_sn', 'refer_page_el_sn',
+    'refer_page_name', 'refer_page_id', 'freesia_scene', 'search_key'
+]);
+const temuPrefixes = /^(_oak_|_x_)/;
+
+// Medium's Copy link button adds ?source=copy_link. Both lists strip `source`
+// on Medium; it is far too ordinary a name to strip anywhere else.
+const mediumParams = new Set(['source']);
+
 // --- Google Search ----------------------------------------------------------
 
 // What Google attaches to a results page on top of the query. None of these
@@ -441,6 +485,16 @@ const siteRules = [
     },
     { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
     { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
+    { id: 'etsy',   domains: ['etsy.com'], params: etsyParams, prefixes: etsyPrefixes, path: /^\/listing\// },
+    { id: 'shein',  domains: ['shein.com', 'shein.co.uk'], params: sheinParams, path: /-p-\d+\.html$/ },
+    {
+        id: 'aliexpress',
+        domains: ['aliexpress.us', 'aliexpress.com'],
+        params: aliexpressParams,
+        path: /^\/item\//
+    },
+    { id: 'temu',   domains: ['temu.com'], params: temuParams, prefixes: temuPrefixes, path: /-g-\d+\.html$/ },
+    { id: 'medium', domains: ['medium.com'], params: mediumParams },
     { id: 'ebay',      domains: ebayDomains,   params: ebayParams,   path: /^\/itm\// },
     { id: 'target',    domains: ['target.com'], params: targetParams, path: /^\/p\// },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
