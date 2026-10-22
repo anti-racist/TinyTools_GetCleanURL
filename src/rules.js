@@ -362,10 +362,11 @@ const mujiPrefixes = /^_su_rec/;
 // 32-hex-digit value: who the email went to. Tested: the same search, in the
 // same place, without them. find_desc and find_loc are the search and kept.
 //
-// dd_referrer (the page the visitor came from) is left alone for now: on
-// neither list, and the one link seen with it could not be opened past Yelp's
-// bot wall to check the page.
-const yelpParams = new Set(['nid', 'ytl_']);
+// dd_referrer carries the page the visitor came from (a Google search, in the
+// link tested). Not on AdGuard's or ClearURLs' lists; DandelionSprout strips
+// it on another site, with the same value. Tested: the same business page
+// without it.
+const yelpParams = new Set(['nid', 'ytl_', 'dd_referrer']);
 
 // --- Social, news and streaming ----------------------------------------------
 
