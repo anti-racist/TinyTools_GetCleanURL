@@ -8,6 +8,7 @@ A lightweight tool that tidies up links with one click—clean, simple, and easy
 - ✨ Cleans Amazon search, Best Sellers and category links, not only product links.
 - ✨ Removes the subscriber and campaign tracking that emails add to links, such as those from Bloomingdale's, Muji and Yelp.
 - ✨ Recognises over 160 more tracking parameters from advertising, affiliate, email and analytics services.
+- 🐛 Tracking parameters are now removed when a stray `?` comes before them, as in `??utm_source=`.
 
 ## Key Features
 
