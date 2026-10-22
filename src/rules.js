@@ -362,9 +362,10 @@ const mujiPrefixes = /^_su_rec/;
 // 32-hex-digit value: who the email went to. Tested: the same search, in the
 // same place, without them. find_desc and find_loc are the search and kept.
 //
-// dd_referrer carries the page the visitor came from (a Google search, in the
-// link tested); on neither list. Tested: the same business page without it.
-const yelpParams = new Set(['nid', 'ytl_', 'dd_referrer']);
+// dd_referrer (the page the visitor came from) is left alone for now: on
+// neither list, and the one link seen with it could not be opened past Yelp's
+// bot wall to check the page.
+const yelpParams = new Set(['nid', 'ytl_']);
 
 // --- Social, news and streaming ----------------------------------------------
 
@@ -434,8 +435,9 @@ const appleMusicParams = new Set([
 ]);
 
 // The Wall Street Journal's Share button adds reflink; AdGuard strips mod (the
-// spot on WSJ's own pages a link was clicked) as well. `st` is kept: it is the
-// share token that lets someone without a subscription read the article.
+// spot on WSJ's own pages a link was clicked) as well. `st` comes on the same
+// share links and is kept: it does not unlock the article, but what it does do
+// is not known.
 const wsjParams = new Set(['reflink', 'mod']);
 
 // Bloomberg's newsletters add sref (tested), and AdGuard strips in_source,

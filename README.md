@@ -2,7 +2,7 @@
 
 A lightweight tool that tidies up links with one click—clean, simple, and easy to share.
 
-## What's New in 2.4
+## What's New in 2.5
 
 - ✨ Removes the tracking that social media, news, shopping and streaming sites add to shared links and newsletter links.
 
