@@ -398,9 +398,13 @@ const threadsParams = new Set(['xmt', 'slof']);
 // same page without them (lang is kept). otpToken, seen beside them once on a
 // link whose page no longer exists, is left alone until a working link shows
 // the same.
+//
+// rcm comes on a post shared from the Android app: the sharer's member id
+// (ACoAA...), so a forwarded link says who shared it. On neither list; tested
+// on a real shared post.
 const linkedinParams = new Set([
     'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
-    'midToken', 'midSig', 'eid'
+    'midToken', 'midSig', 'eid', 'rcm'
 ]);
 const linkedinPrefixes = /^trk/;
 
@@ -442,6 +446,20 @@ const bloombergParams = new Set(['sref', 'in_source', 'srnd', 'leadSource']);
 // stripped everywhere. skuId is kept, and so is intl, which without it sends
 // the visitor back to the country picker.
 const bestbuyParams = new Set(['irclickid', 'ref', 'loc', 'acampID']);
+
+// CNBC's share bar adds __source (both lists) and par (AdGuard), naming the
+// button pressed: sharebar|twitter.
+const cnbcParams = new Set(['__source', 'par']);
+
+// IMDb marks every internal link with ref_ (where on the site it was
+// clicked) and Amazon's pf_rd_* placement tags; both lists strip them there.
+const imdbParams = new Set(['ref_']);
+const imdbPrefixes = /^pf_rd_/;
+
+// Climatebase job pages, /job/<id>/<name>: source names the list a job was
+// opened from (jobs_directory, a job alert). Far too ordinary a name to strip
+// anywhere else.
+const climatebaseParams = new Set(['source']);
 
 // --- More shops and Medium -------------------------------------------------
 
@@ -575,6 +593,9 @@ const siteRules = [
     { id: 'applemusic', domains: ['music.apple.com'], params: appleMusicParams },
     { id: 'wsj',       domains: ['wsj.com'], params: wsjParams },
     { id: 'bloomberg', domains: ['bloomberg.com'], params: bloombergParams },
+    { id: 'cnbc',      domains: ['cnbc.com'], params: cnbcParams },
+    { id: 'imdb',      domains: ['imdb.com'], params: imdbParams, prefixes: imdbPrefixes },
+    { id: 'climatebase', domains: ['climatebase.org'], params: climatebaseParams, path: /^\/job\// },
     { id: 'bestbuy',   domains: ['bestbuy.com'], params: bestbuyParams, path: /^\/site\/.*\.p$/ },
     {
         id: 'bing',
