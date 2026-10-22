@@ -465,6 +465,24 @@ const imdbPrefixes = /^pf_rd_/;
 // anywhere else.
 const climatebaseParams = new Set(['source']);
 
+// MSN: ocid (stripped everywhere) comes as hpmsn from the home page and
+// socialshare from the Share button; AdGuard strips cvid, ei and pc beside it
+// on MSN. cvid is Bing's search-session id, and only Bing and MSN lose it.
+const msnParams = new Set(['cvid', 'ei', 'pc']);
+
+// Yahoo's Share-to-X button adds soc_src and soc_trk (DandelionSprout) and
+// tsrc; AdGuard strips src and ncid there as well.
+const yahooParams = new Set(['soc_src', 'soc_trk', 'tsrc', 'src', 'ncid']);
+
+// DuckDuckGo: origin and t say where a search was started from (h_ is the
+// home page; browsers and partners have their own); AdGuard strips both, t
+// on results pages only, and from, vis, perf_id and experiment_* as well.
+// q and ia - the search and the results tab - are kept. t is one letter, so
+// it is taken only on duckduckgo.com's results page (the root path with q).
+const duckduckgoParams = new Set(['origin', 'from', 'vis', 'perf_id', 'parent_perf_id']);
+const duckduckgoPrefixes = /^experiment_/;
+const duckduckgoSearchParams = new Set(['t']);
+
 // --- More shops and Medium -------------------------------------------------
 
 // What a search result adds to a product page on each of these. Each row is
@@ -600,6 +618,15 @@ const siteRules = [
     { id: 'cnbc',      domains: ['cnbc.com'], params: cnbcParams },
     { id: 'imdb',      domains: ['imdb.com'], params: imdbParams, prefixes: imdbPrefixes },
     { id: 'climatebase', domains: ['climatebase.org'], params: climatebaseParams, path: /^\/job\// },
+    { id: 'msn',       domains: ['msn.com'], params: msnParams },
+    { id: 'yahoo',     domains: ['yahoo.com'], params: yahooParams },
+    {
+        id: 'duckduckgo',
+        domains: ['duckduckgo.com'],
+        params: duckduckgoParams,
+        prefixes: duckduckgoPrefixes,
+        within: { path: /^\/$/, params: duckduckgoSearchParams }
+    },
     { id: 'bestbuy',   domains: ['bestbuy.com'], params: bestbuyParams, path: /^\/site\/.*\.p$/ },
     {
         id: 'bing',
