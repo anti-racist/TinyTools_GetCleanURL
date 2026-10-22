@@ -424,10 +424,11 @@ const bbcPrefixes = /^(ns_|at_)/;
 // browse page - is kept, though ClearURLs' jb* would take it.
 const netflixParams = new Set(['trackId', 'tctx']);
 
-// Apple Music: at and ct are Apple's affiliate and campaign tokens, itscg and
-// itsct its marketing-tools tags, app which app to open (all on a list);
-// uo, ls, lId, cId, sr and src came from a Linkfire link beside them. i is
-// the song on an album page and is kept, as is mt.
+// Apple Music: ct is Apple's campaign token and itscg and itsct its
+// marketing-tools tags (AdGuard), app which app to open (ClearURLs). at, the
+// affiliate token, and uo, ls, lId, cId, sr and src are on neither list; they
+// came from a Linkfire link beside them and were tested with it. i is the
+// song on an album page and is kept, as is mt.
 const appleMusicParams = new Set([
     'at', 'ct', 'itscg', 'itsct', 'app', 'uo', 'ls', 'lId', 'cId', 'sr', 'src'
 ]);
