@@ -38,7 +38,14 @@ export const trackingParams = {
         'vero_id', 'email_id', 'email_campaign', 'email_source', 'email_placement',
         'mc_cid', 'mc_eid', 'mkt_tok',
         // MailerLite's subscriber identifiers.
-        'ml_subscriber', 'ml_subscriber_hash'
+        'ml_subscriber', 'ml_subscriber_hash',
+        // Klaviyo's _kx is the subscriber's identity, which Klaviyo's site
+        // script reads to recognise them; bxid carries the same profile ID
+        // that utm_klaviyo_id does beside it. Salesforce Marketing Cloud's
+        // sfmc_sub is the subscriber number. Each one names who the email
+        // was sent to, not what the page is. Tested on Muji and
+        // Bloomingdale's email links: the same page without them.
+        '_kx', 'bxid', 'sfmc_sub'
     ],
     other: [
         'yclid', 'ocid', '_hsenc', '_hsmi',
@@ -67,7 +74,9 @@ export const globalTrackingParams = fold(Object.values(trackingParams).flat());
 // `mtm_` is Matomo's current name for the family `pk_` used to carry; `hsa_`
 // is HubSpot's ads family, a dozen keys that no explicit list would keep up
 // with.
-export const trackingPrefixes = /^(fb_|pk_|hsa_|mtm_)/;
+// `cm_mmc` is Coremetrics' marketing campaign family (cm_mmc, cm_mmca1 ...
+// cm_mmca15), which AdGuard strips everywhere.
+export const trackingPrefixes = /^(fb_|pk_|hsa_|mtm_|cm_mmc)/;
 
 // --- Amazon -----------------------------------------------------------------
 
@@ -248,6 +257,37 @@ const targetParams = new Set([
     'network', 'device', 'location'
 ]);
 
+// --- Email links ------------------------------------------------------------
+
+// Bloomingdale's (and Macy's, the same company on the same email platform)
+// send email through Salesforce Marketing Cloud, which adds its link-tracking
+// set - j (job), l (list), u (link), mid (account), jb (batch) - beside the
+// subscriber number. cm_ven, cm_cat, cm_pla and cm_ite are Coremetrics'
+// campaign tags, uid and smtrctid the subscriber again, and the mi_ family
+// belongs to Movable Ink, which builds the email's images. Tested: a product
+// link from an email opens the same product with only ID left.
+//
+// Every one of these but the cm_ names is far too short or ordinary to strip
+// anywhere else, so the row covers these two stores only. Macy's has not been
+// tested with a real link of its own.
+const macysParams = new Set([
+    'j', 'l', 'u', 'mid', 'jb', 'cm_ven', 'cm_cat', 'cm_pla', 'cm_ite',
+    'uid', 'smtrctid'
+]);
+const macysPrefixes = /^mi_/;
+
+// Muji's email links add campaign_medium and a recommendation engine's
+// _su_rec and _su_rec_id beside the utm_ set: a long encoded token and a
+// per-click ID. Tested: the same collection, in the same sort order, without
+// them. sort_by is kept.
+const mujiParams = new Set(['campaign_medium']);
+const mujiPrefixes = /^_su_rec/;
+
+// Yelp's email links (sent through Braze) add nid and ytl_, both the same
+// 32-hex-digit value: who the email went to. Tested: the same search, in the
+// same place, without them. find_desc and find_loc are the search and kept.
+const yelpParams = new Set(['nid', 'ytl_']);
+
 // --- Google Search ----------------------------------------------------------
 
 // What Google attaches to a results page on top of the query. None of these
@@ -325,6 +365,14 @@ const siteRules = [
         prefixes: walmartPrefixes,
         canonicalPath: walmartProductPath
     },
+    {
+        id: 'macys',
+        domains: ['bloomingdales.com', 'macys.com'],
+        params: macysParams,
+        prefixes: macysPrefixes
+    },
+    { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
+    { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
     { id: 'ebay',      domains: ebayDomains,   params: ebayParams,   path: /^\/itm\// },
     { id: 'target',    domains: ['target.com'], params: targetParams, path: /^\/p\// },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
