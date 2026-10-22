@@ -373,10 +373,11 @@ const yelpParams = new Set(['nid', 'ytl_', 'dd_referrer']);
 // What each site's Share button, newsletter or app adds. Every row was tested
 // on a real link: the same video, post, article, episode or song without these.
 
-// TikTok video pages, /@<user>/video/<id>. is_from_webapp, sender_device and
-// web_id were on the link; the rest are what AdGuard and ClearURLs strip on
-// the same pages. `q` and `t` are left alone: on TikTok's search pages they
-// are the search.
+// TikTok. is_from_webapp, sender_device and web_id came on a video page's
+// link, _r and _t on a profile link shared from the app; the rest are what
+// AdGuard and ClearURLs strip there. Every name here is TikTok's own, so they
+// go on every TikTok page. `q` and `t` are left alone: on TikTok's search
+// pages they are the search.
 const tiktokParams = new Set([
     'is_from_webapp', 'sender_device', 'web_id', '_r', '_t', '_d', 'u_code',
     'share_app_id', 'share_app_name', 'share_author_id', 'share_iid',
@@ -596,12 +597,7 @@ const siteRules = [
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
     { id: 'reddit',    domains: ['reddit.com'],              params: redditParams },
-    {
-        id: 'tiktok',
-        domains: ['tiktok.com'],
-        params: tiktokParams,
-        path: /^\/@[^/]+\/video\/\d+/
-    },
+    { id: 'tiktok',   domains: ['tiktok.com'], params: tiktokParams },
     { id: 'threads',  domains: ['threads.com', 'threads.net'], params: threadsParams },
     { id: 'linkedin', domains: ['linkedin.com'], params: linkedinParams, prefixes: linkedinPrefixes },
     {
