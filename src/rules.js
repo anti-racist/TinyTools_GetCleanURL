@@ -137,12 +137,18 @@ function amazonProductPath(pathParts) {
 // sites, so each is scoped to the site that mints it. Stripping any of them
 // globally would rewrite links rather than clean them.
 
-// `si` only. It is a different value every time the same video is shared, so
-// it can only be identifying the share rather than describing the video.
+// `si` is a different value every time the same video is shared, so it can
+// only be identifying the share rather than describing the video.
+//
+// `feature` names the way the video was reached - youtu.be, shared,
+// player_embedded - never which video it is or where it starts. A youtu.be
+// share link redirects to /watch?v=...&feature=youtu.be, so it turned up on
+// a real link. ClearURLs strips it on YouTube. Tested: the same video plays
+// without it.
 //
 // `pp` was here and has been taken out: it is a base64 blob that very probably
 // does not affect playback, and "very probably" is not evidence.
-const youtubeParams = new Set(['si']);
+const youtubeParams = new Set(['si', 'feature']);
 
 // `t` is deliberately absent above. On YouTube it is the playback timestamp
 // (?t=43s), so removing it would break a "start at 0:43" link - while on X the

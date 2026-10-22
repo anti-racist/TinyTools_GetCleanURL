@@ -6,6 +6,7 @@ A lightweight tool that tidies up links with one click—clean, simple, and easy
 
 - ✨ Removes the tracking that eBay and Target add to product links from search results and ads.
 - ✨ Cleans Amazon search, Best Sellers and category links, not only product links.
+- ✨ Removes what YouTube adds when a youtu.be share link is opened.
 
 ## Key Features
 
