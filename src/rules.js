@@ -385,12 +385,15 @@ const threadsParams = new Set(['xmt', 'slof']);
 
 // LinkedIn's emails add trk* (already stripped everywhere as trk, and here as
 // a family: trkEmail, trkInfo), lipi, trackingId, refId and the original
-// referrer. midToken, midSig, eid and otpToken came on a notification email's
-// link: they identify the recipient and the email, and are not part of the
-// page. currentJobId and the rest of a job link are kept.
+// referrer, all on AdGuard's list for LinkedIn. Tested on a job-alert link:
+// the same job without trk, refId and trackingId. currentJobId and the rest
+// of a job link are kept.
+//
+// midToken, midSig, eid and otpToken came on a notification email's link as
+// well, but that link's profile no longer exists, so they are untested and on
+// neither list. Left alone until a working link shows the page is the same.
 const linkedinParams = new Set([
-    'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
-    'midToken', 'midSig', 'eid', 'otpToken'
+    'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer'
 ]);
 const linkedinPrefixes = /^trk/;
 
