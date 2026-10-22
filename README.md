@@ -4,7 +4,7 @@ A lightweight tool that tidies up links with one click—clean, simple, and easy
 
 ## What's New in 2.3
 
-- ✨ Cleans product links from more online stores, and Amazon search, Best Sellers and category links.
+- ✨ Cleans product links from more online stores, and store search, best-seller and category pages.
 - ✨ Removes the subscriber and campaign tracking that marketing emails add to links.
 - ✨ Recognises over 160 more tracking parameters from advertising, affiliate, email and analytics services.
 - 🐛 Tracking parameters are now removed when a stray `?` comes before them, as in `??utm_source=`.
