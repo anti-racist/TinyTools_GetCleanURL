@@ -222,9 +222,10 @@ function amazonProductPath(pathParts) {
 // a real link. ClearURLs strips it on YouTube. Tested: the same video plays
 // without it.
 //
-// `pp` was here and has been taken out: it is a base64 blob that very probably
-// does not affect playback, and "very probably" is not evidence.
-const youtubeParams = new Set(['si', 'feature']);
+// `pp` is what a video opened from search results carries: base64 holding the
+// search itself, word for word, so a shared link tells whoever opens it what
+// was searched for. On both lists. Tested: the same video plays without it.
+const youtubeParams = new Set(['si', 'feature', 'pp']);
 
 // `t` is deliberately absent above. On YouTube it is the playback timestamp
 // (?t=43s), so removing it would break a "start at 0:43" link - while on X the
@@ -360,7 +361,10 @@ const mujiPrefixes = /^_su_rec/;
 // Yelp's email links (sent through Braze) add nid and ytl_, both the same
 // 32-hex-digit value: who the email went to. Tested: the same search, in the
 // same place, without them. find_desc and find_loc are the search and kept.
-const yelpParams = new Set(['nid', 'ytl_']);
+//
+// dd_referrer carries the page the visitor came from (a Google search, in the
+// link tested); on neither list. Tested: the same business page without it.
+const yelpParams = new Set(['nid', 'ytl_', 'dd_referrer']);
 
 // --- Social, news and streaming ----------------------------------------------
 
@@ -423,6 +427,21 @@ const netflixParams = new Set(['trackId', 'tctx']);
 const appleMusicParams = new Set([
     'at', 'ct', 'itscg', 'itsct', 'app', 'uo', 'ls', 'lId', 'cId', 'sr', 'src'
 ]);
+
+// The Wall Street Journal's Share button adds reflink; AdGuard strips mod (the
+// spot on WSJ's own pages a link was clicked) as well. `st` is kept: it is the
+// share token that lets someone without a subscription read the article.
+const wsjParams = new Set(['reflink', 'mod']);
+
+// Bloomberg's newsletters add sref (tested), and AdGuard strips in_source,
+// srnd and leadSource beside it.
+const bloombergParams = new Set(['sref', 'in_source', 'srnd', 'leadSource']);
+
+// Best Buy product pages, /site/<name>/<sku>.p. Impact's irclickid, the
+// affiliate's ref and loc, and acampID (both lists); irgwc and mpid are
+// stripped everywhere. skuId is kept, and so is intl, which without it sends
+// the visitor back to the country picker.
+const bestbuyParams = new Set(['irclickid', 'ref', 'loc', 'acampID']);
 
 // --- More shops and Medium -------------------------------------------------
 
@@ -554,6 +573,9 @@ const siteRules = [
     { id: 'bbc',      domains: ['bbc.com', 'bbc.co.uk'], prefixes: bbcPrefixes },
     { id: 'netflix',  domains: ['netflix.com'], params: netflixParams },
     { id: 'applemusic', domains: ['music.apple.com'], params: appleMusicParams },
+    { id: 'wsj',       domains: ['wsj.com'], params: wsjParams },
+    { id: 'bloomberg', domains: ['bloomberg.com'], params: bloombergParams },
+    { id: 'bestbuy',   domains: ['bestbuy.com'], params: bestbuyParams, path: /^\/site\/.*\.p$/ },
     {
         id: 'bing',
         domains: ['bing.com'],
