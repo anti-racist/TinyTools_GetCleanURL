@@ -171,6 +171,20 @@ export function cleanUrl(urlString) {
             // display.html into /gp/help/customer.
         }
 
+        // Tracking that lives in the path, such as Amazon's /ref=nav_logo.
+        // Only whole segments are dropped, and the rest of the path is kept
+        // exactly as it arrived.
+        if (rule && rule.pathTracking) {
+            const segments = url.pathname.split('/');
+            const kept = segments.filter((segment, i) =>
+                i === 0 || !rule.pathTracking.test(segment));
+            if (kept.length < segments.length) {
+                url.pathname = kept.join('/') || '/';
+                changed = true;
+                removedCount += segments.length - kept.length;
+            }
+        }
+
         if (url.search) {
             const { kept, removed } = filterParams(url.search.slice(1), rule);
 

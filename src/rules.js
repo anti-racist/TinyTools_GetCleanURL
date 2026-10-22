@@ -78,7 +78,13 @@ const amazonParams = new Set([
     'tag', 'ref', 'ref_', 'refRID', 'pd_rd_r', 'pd_rd_w', 'pd_rd_wg',
     'pf_rd_p', 'pf_rd_r', 'pf_rd_s', 'pf_rd_t', 'pf_rd_i', 'pf_rd_m',
     '_encoding', 'smid', 'th', 'psc', 'linkId', 'linkCode', 'camp',
-    'creative', 'creativeASIN', 'ascsubtag', 'asc_refurl', 'asc_campaign'
+    'creative', 'creativeASIN', 'ascsubtag', 'asc_refurl', 'asc_campaign',
+    // What a search results page adds beside the query `k`: crid is a search
+    // session ID, qid the time of the search, and sprefix what had been typed
+    // when a suggestion was picked. Both lists strip qid; crid and sprefix are
+    // in ClearURLs' Amazon search rules. Tested: a search link without them
+    // gives the same results in the same order.
+    'crid', 'sprefix', 'qid'
 ]);
 
 // Scoped for the same reason as the list above: `ref_` and `sc_` are Amazon
@@ -95,6 +101,12 @@ const amazonDomains = [
     // never matched it, so Turkish links kept their affiliate tags.
     'amazon.com.tr', 'amazon.com.be', 'amazon.eg'
 ];
+
+// Off product pages Amazon puts its click tracking in the path rather than the
+// query: /ref=nav_logo, /gp/bestsellers/toys-and-games/ref=zg_bs_nav_0. That
+// segment is dropped wherever it appears, as ClearURLs does on every Amazon
+// URL. Tested: amazon.com/ref=nav_logo without it is the same home page.
+const amazonPathTracking = /^ref=/i;
 
 // A product identifier is only trusted directly after one of these segments:
 // /dp/<ASIN>, /gp/product/<ASIN>, /gp/aw/d/<ASIN>.
@@ -192,6 +204,44 @@ const walmartPrefixes = /^ath/;
 // would take `form=` off every site that has one.
 const bingParams = new Set(['cvid', 'FORM']);
 
+// --- eBay -------------------------------------------------------------------
+
+// What a search result adds to an item link (/itm/<item id>):
+//
+//   _skw      the search that found the item
+//   itmmeta   an opaque ID of the results page it was clicked from
+//   itmprp    an encoded record of the click
+//   hash      an item and image hash beside the ID already in the path
+//
+// AdGuard strips all four on eBay, and ClearURLs strips hash as well. Tested
+// on two items: the same listing and price without them.
+//
+// `var` is deliberately kept: it is the variant chosen, and without it the
+// listing opens on its default variant. AdGuard took its own eBay rule for it
+// out for the same reason.
+const ebayParams = new Set(['_skw', 'itmmeta', 'itmprp', 'hash']);
+
+const ebayDomains = [
+    'ebay.com', 'ebay.co.uk', 'ebay.de', 'ebay.fr', 'ebay.it', 'ebay.es',
+    'ebay.ca', 'ebay.com.au', 'ebay.at', 'ebay.ch', 'ebay.ie', 'ebay.nl',
+    'ebay.be', 'ebay.pl', 'ebay.com.sg', 'ebay.com.my', 'ebay.ph', 'ebay.com.hk'
+];
+
+// --- Target -----------------------------------------------------------------
+
+// What a Google Shopping ad adds to a product page (/p/<name>/-/A-<id>), on
+// top of the gclid family that is already stripped everywhere. AdGuard strips
+// every one of these on target.com except sid, which arrived empty. Tested: a
+// product page reached from an ad opens with the same product, price and
+// pickup store without any of them.
+//
+// Product pages only. ref, network, device and location are ordinary words,
+// and Target's search and account pages are not where they were seen.
+const targetParams = new Set([
+    'sid', 'ref', 'AFID', 'fndsrc', 'DFA', 'CPNG', 'adgroup', 'LID',
+    'network', 'device', 'location'
+]);
+
 // --- Google Search ----------------------------------------------------------
 
 // What Google attaches to a results page on top of the query. None of these
@@ -240,6 +290,9 @@ const googleSearchPrefixes = /^gs_/;
 // path, when present, limits the row to pages whose path it matches; anywhere
 // else on the site the row does not apply at all.
 //
+// pathTracking, when present, matches whole path segments that are tracking
+// rather than part of the page; each one found is dropped from the path.
+//
 // canonicalPath(pathParts) returning a path means this URL has one true form
 // and everything else on it - query and fragment alike - is noise. Returning
 // null means the page keeps its path and is cleaned like any other.
@@ -249,6 +302,7 @@ const siteRules = [
         domains: amazonDomains,
         params: amazonParams,
         prefixes: amazonPrefixes,
+        pathTracking: amazonPathTracking,
         canonicalPath: amazonProductPath
     },
     { id: 'youtube',   domains: ['youtube.com', 'youtu.be'], params: youtubeParams },
@@ -265,6 +319,8 @@ const siteRules = [
         prefixes: walmartPrefixes,
         canonicalPath: walmartProductPath
     },
+    { id: 'ebay',      domains: ebayDomains,   params: ebayParams,   path: /^\/itm\// },
+    { id: 'target',    domains: ['target.com'], params: targetParams, path: /^\/p\// },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
     // Drive, where these names are nobody's business to remove. Google has
     // redirected its country domains to google.com since April 2025, so no

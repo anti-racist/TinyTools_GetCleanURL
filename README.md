@@ -2,10 +2,10 @@
 
 A lightweight tool that tidies up links with one click—clean, simple, and easy to share.
 
-## What's New in 2.2.1
+## What's New in 2.3
 
-- ✨ Removes more tracking parameters, including those added by Bing and Edge, Google, HubSpot, MailerLite and Reddit.
-- ✨ Shortens Walmart product links to the product itself, as it already does for Amazon.
+- ✨ Removes the tracking that eBay and Target add to product links from search results and ads.
+- ✨ Cleans Amazon search, Best Sellers and category links, not only product links.
 
 ## Key Features
 
