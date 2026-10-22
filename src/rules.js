@@ -283,13 +283,16 @@ const walmartPrefixes = /^ath/;
 //          how the query was picked from the autocomplete list: its
 //          position, the suggestion count and type. ClearURLs strips them on
 //          Bing, and qp as well, which has not been seen on a real link.
+//          Results pages only (/search, /images/search, ...): on Bing Maps
+//          `sp` is the pushpin, and without it a shared map loses its place.
 //
 // Left alone: pq, which carries what was typed before autocomplete finished
 // and is the clearest leak of the lot, but is on neither list; and ghc, lq.
 //
 // Scoped to Bing, FORM especially: matching folds case, so a global rule
 // would take `form=` off every site that has one.
-const bingParams = new Set(['cvid', 'FORM', 'sk', 'sp', 'sc', 'qs']);
+const bingParams = new Set(['cvid', 'FORM']);
+const bingSearchParams = new Set(['sk', 'sp', 'sc', 'qs']);
 
 // --- eBay -------------------------------------------------------------------
 
@@ -448,6 +451,9 @@ const googleSearchPrefixes = /^gs_/;
 // path, when present, limits the row to pages whose path it matches; anywhere
 // else on the site the row does not apply at all.
 //
+// within, when present, adds names that count as tracking only on the pages
+// whose path it matches; elsewhere on the site the row's own names still do.
+//
 // pathTracking, when present, matches whole path segments that are tracking
 // rather than part of the page; each one found is dropped from the path.
 //
@@ -469,7 +475,12 @@ const siteRules = [
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
     { id: 'reddit',    domains: ['reddit.com'],              params: redditParams },
-    { id: 'bing',      domains: ['bing.com'],                params: bingParams },
+    {
+        id: 'bing',
+        domains: ['bing.com'],
+        params: bingParams,
+        within: { path: /\/search$/, params: bingSearchParams }
+    },
     {
         id: 'walmart',
         domains: ['walmart.com'],
@@ -523,5 +534,14 @@ export const siteRuleByDomain = new Map();
 for (const rule of siteRules) {
     rule.params = rule.params ? fold(rule.params) : NO_PARAMS;
     if (!rule.prefixes) rule.prefixes = NEVER;
+    // The narrower rule is built once here, as the row plus the extra names,
+    // so the cleaner only has to pick one of the two.
+    if (rule.within) {
+        rule.within.rule = {
+            ...rule,
+            params: new Set([...rule.params, ...fold(rule.within.params)]),
+            within: null
+        };
+    }
     for (const domain of rule.domains) siteRuleByDomain.set(domain, rule);
 }
