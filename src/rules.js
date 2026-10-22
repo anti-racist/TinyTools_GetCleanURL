@@ -276,17 +276,17 @@ const walmartPrefixes = /^ath/;
 //          the page is unchanged without it.
 //   FORM   which entry point the search came from - QBRE is the search box.
 //          Pure attribution.
-//   sk, sp, sc, qs, qp
+//   sk, sp, sc, qs
 //          how the query was picked from the autocomplete list: its
-//          position, the suggestion count and type. ClearURLs strips all
-//          five on Bing.
+//          position, the suggestion count and type. ClearURLs strips them on
+//          Bing, and qp as well, which has not been seen on a real link.
 //
 // Left alone: pq, which carries what was typed before autocomplete finished
 // and is the clearest leak of the lot, but is on neither list; and ghc, lq.
 //
 // Scoped to Bing, FORM especially: matching folds case, so a global rule
 // would take `form=` off every site that has one.
-const bingParams = new Set(['cvid', 'FORM', 'sk', 'sp', 'sc', 'qs', 'qp']);
+const bingParams = new Set(['cvid', 'FORM', 'sk', 'sp', 'sc', 'qs']);
 
 // --- eBay -------------------------------------------------------------------
 
@@ -328,8 +328,7 @@ const targetParams = new Set([
 
 // --- Email links ------------------------------------------------------------
 
-// Bloomingdale's (and Macy's, the same company on the same email platform)
-// send email through Salesforce Marketing Cloud, which adds its link-tracking
+// Bloomingdale's sends email through Salesforce Marketing Cloud, which adds its link-tracking
 // set - j (job), l (list), u (link), mid (account), jb (batch) - beside the
 // subscriber number. cm_ven, cm_cat, cm_pla and cm_ite are Coremetrics'
 // campaign tags, uid and smtrctid the subscriber again, and the mi_ family
@@ -337,13 +336,13 @@ const targetParams = new Set([
 // link from an email opens the same product with only ID left.
 //
 // Every one of these but the cm_ names is far too short or ordinary to strip
-// anywhere else, so the row covers these two stores only. Macy's has not been
-// tested with a real link of its own.
-const macysParams = new Set([
+// anywhere else, so the row covers this one store. Macy's is the same company,
+// but a Macy's link seen so far carried none of these, so it is not included.
+const bloomingdalesParams = new Set([
     'j', 'l', 'u', 'mid', 'jb', 'cm_ven', 'cm_cat', 'cm_pla', 'cm_ite',
     'uid', 'smtrctid'
 ]);
-const macysPrefixes = /^mi_/;
+const bloomingdalesPrefixes = /^mi_/;
 
 // Muji's email links add campaign_medium and a recommendation engine's
 // _su_rec and _su_rec_id beside the utm_ set: a long encoded token and a
@@ -435,10 +434,10 @@ const siteRules = [
         canonicalPath: walmartProductPath
     },
     {
-        id: 'macys',
-        domains: ['bloomingdales.com', 'macys.com'],
-        params: macysParams,
-        prefixes: macysPrefixes
+        id: 'bloomingdales',
+        domains: ['bloomingdales.com'],
+        params: bloomingdalesParams,
+        prefixes: bloomingdalesPrefixes
     },
     { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
     { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
