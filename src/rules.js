@@ -362,6 +362,62 @@ const mujiPrefixes = /^_su_rec/;
 // same place, without them. find_desc and find_loc are the search and kept.
 const yelpParams = new Set(['nid', 'ytl_']);
 
+// --- Social, news and streaming ----------------------------------------------
+
+// What each site's Share button, newsletter or app adds. Every row was tested
+// on a real link: the same video, post, article, episode or song without these.
+
+// TikTok video pages, /@<user>/video/<id>. is_from_webapp, sender_device and
+// web_id were on the link; the rest are what AdGuard and ClearURLs strip on
+// the same pages. `q` and `t` are left alone: on TikTok's search pages they
+// are the search.
+const tiktokParams = new Set([
+    'is_from_webapp', 'sender_device', 'web_id', '_r', '_t', '_d', 'u_code',
+    'share_app_id', 'share_app_name', 'share_author_id', 'share_iid',
+    'share_link_id', 'share_region', 'social_share_type', 'tt_from', 'ug_btm',
+    'embed_source', 'enter_method', 'referer_url', 'referer_video_id',
+    'sec_user_id', 'user_id', 'timestamp', 'preview_pb', 'trackParams'
+]);
+
+// Threads' Share button adds xmt (AdGuard strips it there), and sometimes
+// slof, which is on neither list but arrived beside it.
+const threadsParams = new Set(['xmt', 'slof']);
+
+// LinkedIn's emails add trk* (already stripped everywhere as trk, and here as
+// a family: trkEmail, trkInfo), lipi, trackingId, refId and the original
+// referrer. midToken, midSig, eid and otpToken came on a notification email's
+// link: they identify the recipient and the email, and are not part of the
+// page. currentJobId and the rest of a job link are kept.
+const linkedinParams = new Set([
+    'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
+    'midToken', 'midSig', 'eid', 'otpToken'
+]);
+const linkedinPrefixes = /^trk/;
+
+// The New York Times: smid is the Share button's (tw-share, url-share), the
+// others its newsletters' (AdGuard). unlocked_article_code is the gift that
+// opens a paywalled article, and is kept. The Athletic adds `source` as well;
+// that name is stripped only there.
+const nytimesParams = new Set(['smid', 'sgrp', 'referringSource', 'impression_id']);
+const nytimesAthleticParams = new Set(['source']);
+
+// BBC: comScore's ns_* family on social and newsletter links (AdGuard), and
+// AT Internet's at_* (ClearURLs). xtor and ocid are stripped everywhere.
+const bbcPrefixes = /^(ns_|at_)/;
+
+// Netflix: trackId and tctx record which row and which button a title was
+// played from (both lists). The title is the path. jbv - a title id on the
+// browse page - is kept, though ClearURLs' jb* would take it.
+const netflixParams = new Set(['trackId', 'tctx']);
+
+// Apple Music: at and ct are Apple's affiliate and campaign tokens, itscg and
+// itsct its marketing-tools tags, app which app to open (all on a list);
+// uo, ls, lId, cId, sr and src came from a Linkfire link beside them. i is
+// the song on an album page and is kept, as is mt.
+const appleMusicParams = new Set([
+    'at', 'ct', 'itscg', 'itsct', 'app', 'uo', 'ls', 'lId', 'cId', 'sr', 'src'
+]);
+
 // --- More shops and Medium -------------------------------------------------
 
 // What a search result adds to a product page on each of these. Each row is
@@ -475,6 +531,23 @@ const siteRules = [
     { id: 'twitter',   domains: ['twitter.com', 'x.com'],    params: twitterParams },
     { id: 'facebook',  domains: ['facebook.com'],            params: facebookParams },
     { id: 'reddit',    domains: ['reddit.com'],              params: redditParams },
+    {
+        id: 'tiktok',
+        domains: ['tiktok.com'],
+        params: tiktokParams,
+        path: /^\/@[^/]+\/video\/\d+/
+    },
+    { id: 'threads',  domains: ['threads.com', 'threads.net'], params: threadsParams },
+    { id: 'linkedin', domains: ['linkedin.com'], params: linkedinParams, prefixes: linkedinPrefixes },
+    {
+        id: 'nytimes',
+        domains: ['nytimes.com'],
+        params: nytimesParams,
+        within: { path: /^\/athletic\//, params: nytimesAthleticParams }
+    },
+    { id: 'bbc',      domains: ['bbc.com', 'bbc.co.uk'], prefixes: bbcPrefixes },
+    { id: 'netflix',  domains: ['netflix.com'], params: netflixParams },
+    { id: 'applemusic', domains: ['music.apple.com'], params: appleMusicParams },
     {
         id: 'bing',
         domains: ['bing.com'],
