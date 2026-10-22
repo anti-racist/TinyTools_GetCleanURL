@@ -130,63 +130,7 @@ function isTrackingParam(key, rule) {
     return rule.params.has(name) || rule.prefixes.test(name);
 }
 
-// Redirect wrappers: a page whose only job is to send the visitor on to the
-// address in one of its parameters. Copying the wrapper hands on a link that
-// goes through Google, Facebook or YouTube first and tells them who clicked,
-// so the destination is copied instead. Most wrappers redirect at once; this
-// is for the ones that stop on a warning page first.
-//
-// Each is scoped by host and path, and only an http(s) destination is taken.
-const redirectWrappers = [
-    { host: /(^|\.)google\.com$/,         path: /^\/url$/,      params: ['q', 'url'] },
-    { host: /^(l|lm|m)\.facebook\.com$/,  path: /^\/l\.php$/,   params: ['u'] },
-    { host: /^l\.instagram\.com$/,        path: /^\/$/,         params: ['u'] },
-    { host: /(^|\.)youtube\.com$/,        path: /^\/redirect$/, params: ['q'] },
-    { host: /^out\.reddit\.com$/,         path: /^\//,          params: ['url'] }
-];
-
-// The destination a wrapper points to, or null if this is not a wrapper.
-// URLSearchParams decodes the value exactly once.
-function redirectTarget(url) {
-    const wrapper = redirectWrappers.find(w =>
-        w.host.test(url.hostname) && w.path.test(url.pathname));
-    if (!wrapper) return null;
-    for (const name of wrapper.params) {
-        const target = url.searchParams.get(name);
-        if (target && /^https?:\/\//i.test(target) && parses(target)) return target;
-    }
-    return null;
-}
-
-// URL.canParse would do, but only from Chrome 120.
-function parses(address) {
-    try {
-        new URL(address);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 export function cleanUrl(urlString) {
-    let url;
-    try {
-        url = new URL(urlString);
-    } catch (error) {
-        throw new Error('Invalid URL format', { cause: error });
-    }
-
-    // Unwrapped once only: a destination that is itself a wrapper is cleaned
-    // as an ordinary link rather than followed again.
-    const target = redirectTarget(url);
-    if (target) {
-        const result = cleanAddress(target);
-        return { ...result, changed: true, unwrapped: true };
-    }
-    return cleanAddress(urlString);
-}
-
-function cleanAddress(urlString) {
     try {
         const url = new URL(urlString);
         let changed = false;
