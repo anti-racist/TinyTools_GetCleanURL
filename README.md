@@ -4,7 +4,7 @@ A lightweight tool that tidies up links with one click—clean, simple, and easy
 
 ## What's New in 2.5
 
-- ✨ Removes the tracking that social media, news, shopping and streaming sites add to shared links and newsletter links.
+- ✨ Removes the tracking that social media, news, search, shopping and streaming sites add to shared links and newsletter links.
 
 ## Key Features
 
