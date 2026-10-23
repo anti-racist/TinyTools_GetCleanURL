@@ -459,12 +459,13 @@ const bloombergParams = new Set(['sref', 'in_source', 'srnd', 'leadSource']);
 // everywhere. A Best Buy email's link added src and vehicle (AdGuard strips
 // both on Best Buy), jobid and commcode (the send and the campaign), eut (who
 // the email went to), and ref and loc again. Every page: an email lands on
-// the home page or a deals page, not only on a product. skuId, intl (without
+// the home page or a deals page, not only on a product; on a product page it
+// brought CampaignID too (DandelionSprout strips it everywhere). skuId, intl (without
 // it the visitor is sent back to the country picker), st, id and qp - the
 // search, category and filters - are kept.
 const bestbuyParams = new Set([
     'irclickid', 'ref', 'loc', 'acampID', 'src', 'vehicle', 'jobid',
-    'commcode', 'eut'
+    'commcode', 'eut', 'CampaignID'
 ]);
 
 // CNBC's share bar adds __source (both lists) and par (AdGuard), naming the
