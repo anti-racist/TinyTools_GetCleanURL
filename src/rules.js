@@ -454,11 +454,18 @@ const wsjParams = new Set(['reflink', 'mod']);
 // srnd and leadSource beside it.
 const bloombergParams = new Set(['sref', 'in_source', 'srnd', 'leadSource']);
 
-// Best Buy product pages, /site/<name>/<sku>.p. Impact's irclickid, the
-// affiliate's ref and loc, and acampID (both lists); irgwc and mpid are
-// stripped everywhere. skuId is kept, and so is intl, which without it sends
-// the visitor back to the country picker.
-const bestbuyParams = new Set(['irclickid', 'ref', 'loc', 'acampID']);
+// Best Buy. Impact's irclickid, the affiliate's ref and loc, and acampID
+// (both lists) came on a product link; irgwc and mpid are stripped
+// everywhere. A Best Buy email's link added src and vehicle (AdGuard strips
+// both on Best Buy), jobid and commcode (the send and the campaign), eut (who
+// the email went to), and ref and loc again. Every page: an email lands on
+// the home page or a deals page, not only on a product. skuId, intl (without
+// it the visitor is sent back to the country picker), st, id and qp - the
+// search, category and filters - are kept.
+const bestbuyParams = new Set([
+    'irclickid', 'ref', 'loc', 'acampID', 'src', 'vehicle', 'jobid',
+    'commcode', 'eut'
+]);
 
 // CNBC's share bar adds __source (both lists) and par (AdGuard), naming the
 // button pressed: sharebar|twitter.
@@ -631,7 +638,7 @@ const siteRules = [
         prefixes: duckduckgoPrefixes,
         within: { path: /^\/$/, params: duckduckgoSearchParams }
     },
-    { id: 'bestbuy',   domains: ['bestbuy.com'], params: bestbuyParams, path: /^\/site\/.*\.p$/ },
+    { id: 'bestbuy',   domains: ['bestbuy.com'], params: bestbuyParams },
     {
         id: 'bing',
         domains: ['bing.com'],
