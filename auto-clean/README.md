@@ -4,7 +4,7 @@ A separate, experimental extension that removes common tracking parameters autom
 
 ## What it removes
 
-Every global name in Get Clean URL's rules (233 with the `utm_` names Chrome needs listed one by one), built from `src/rules.js` so the two never drift apart. Site rules stay with Get Clean URL's one click. Chrome matches names exactly, so an upper-case spelling such as `UTM_SOURCE`, and `utm_` names outside the list, are left as they are.
+Every global name in Get Clean URL's rules (272 with the prefix families - `utm_`, `fb_`, `pk_`, `mtm_`, `hsa_`, `cm_mmc` - spelled out, since Chrome cannot match a prefix), built from `src/rules.js` so the two never drift apart. Site rules stay with Get Clean URL's one click. Chrome matches names exactly, so an upper-case spelling such as `UTM_SOURCE`, and `utm_` names outside the list, are left as they are.
 
 ## Build
 
