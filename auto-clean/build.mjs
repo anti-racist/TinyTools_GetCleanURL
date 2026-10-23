@@ -20,27 +20,26 @@ for (const name of safeParams) {
     }
 }
 
-// One rule per name rather than one regular expression for all of them:
-// Chrome caps a rule's regex at a small memory budget, and a pattern naming
-// every parameter went over it. Chrome then drops the rule without a word, so
-// the switch said On and nothing was cleaned.
+// One rule, on every top-level GET that has a query, removing every name at
+// once. Chrome makes no redirect when nothing is removed, so an address with
+// none of these names loads as it is.
 //
-// `^` in a urlFilter is a separator - here the ? or & in front of the name.
-// Each rule removes every name, so one redirect cleans the whole address.
-// Names are matched in exactly this spelling: queryTransform compares names
-// case-sensitively, so a rule that fired on UTM_Source would redirect to the
-// same address.
-const rules = safeParams.map((name, i) => ({
-    id: i + 1,
+// Not one regular expression naming the parameters: Chrome caps a rule's regex
+// at a small memory budget, and a pattern naming them went over it. Chrome then
+// drops the rule without a word, so the switch said On and nothing was cleaned.
+//
+// Names are matched in exactly the spelling listed: queryTransform compares
+// names case-sensitively, so UTM_Source is left as it is.
+const rules = [{
+    id: 1,
     priority: 1,
     action: { type: 'redirect', redirect: { transform: { queryTransform: { removeParams: safeParams } } } },
     condition: {
-        urlFilter: `^${name}=`,
-        isUrlFilterCaseSensitive: true,
+        urlFilter: '?',
         resourceTypes: ['main_frame'],
         requestMethods: ['get']
     }
-}));
+}];
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(path.join(dist, 'icons'), { recursive: true });

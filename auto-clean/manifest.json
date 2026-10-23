@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Auto Clean URL (test)",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Removes common tracking parameters from links automatically as pages open. Off until switched on.",
   "permissions": [
     "declarativeNetRequest",

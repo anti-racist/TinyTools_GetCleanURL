@@ -4,7 +4,7 @@ A separate, experimental extension that removes common tracking parameters autom
 
 ## What it removes
 
-Only the names in `safe-params.js`: the `utm_` tags, `fbclid`, `gclid` and other tracking parameters that are safe on every site. Site rules stay with Get Clean URL's one click.
+Every global name in Get Clean URL's rules (233 with the `utm_` names Chrome needs listed one by one), built from `src/rules.js` so the two never drift apart. Site rules stay with Get Clean URL's one click. Chrome matches names exactly, so an upper-case spelling such as `UTM_SOURCE`, and `utm_` names outside the list, are left as they are.
 
 ## Build
 
