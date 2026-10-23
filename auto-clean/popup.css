@@ -1,0 +1,33 @@
+:root {
+    --paper: #f7f4ee;
+    --ink: #1f2a24;
+    --muted: #55605a;
+    --green: #2e6b45;
+}
+body {
+    margin: 0;
+    padding: 16px;
+    width: 280px;
+    background: var(--paper);
+    color: var(--ink);
+    font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+}
+.label { font-weight: 600; }
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--green);
+}
+input:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+.status { margin: 8px 0 0; }
+.note { margin: 8px 0 0; color: var(--muted); font-size: 12px; }

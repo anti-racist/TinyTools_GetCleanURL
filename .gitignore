@@ -8,3 +8,6 @@
 
 # Ignore all .txt files
 *.txt
+
+# The automatic-cleaner experiment builds here.
+auto-clean/dist/

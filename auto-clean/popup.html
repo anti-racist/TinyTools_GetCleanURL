@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auto Clean URL</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <label class="row">
+        <span class="label">Clean links automatically</span>
+        <input id="toggle" type="checkbox" role="switch" disabled>
+    </label>
+    <p id="status" class="status" role="status"></p>
+    <p class="note">Removes utm_ tags, fbclid, gclid and other common tracking parameters as each page opens.</p>
+    <script type="module" src="popup.js"></script>
+</body>
+</html>
