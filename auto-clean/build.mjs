@@ -9,14 +9,23 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanUrl } from '../src/cleaner.js';
 import { safeParams } from './safe-params.js';
+import { siteRules } from './site-rules.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(here, 'dist');
 
-// Every name must be one Get Clean URL already strips on an ordinary site.
+// Every name must be one Get Clean URL already strips: the global ones on an
+// ordinary site, each site's on that site.
 for (const name of safeParams) {
     if (cleanUrl(`https://example.com/?${name}=1`).removedCount !== 1) {
         throw new Error(`${name} is not stripped everywhere by Get Clean URL`);
+    }
+}
+for (const site of siteRules) {
+    for (const name of site.names) {
+        if (cleanUrl(`${site.sample}?${name}=1&keep=1`).removedCount !== 1) {
+            throw new Error(`${name} is not stripped on ${site.id} by Get Clean URL`);
+        }
     }
 }
 
@@ -30,7 +39,7 @@ for (const name of safeParams) {
 //
 // Names are matched in exactly the spelling listed: queryTransform compares
 // names case-sensitively, so UTM_Source is left as it is.
-const rules = [{
+const global = {
     id: 1,
     priority: 1,
     action: { type: 'redirect', redirect: { transform: { queryTransform: { removeParams: safeParams } } } },
@@ -39,7 +48,25 @@ const rules = [{
         resourceTypes: ['main_frame'],
         requestMethods: ['get']
     }
-}];
+};
+
+// Chrome carries out one redirect per request, the highest priority's. A
+// site rule therefore removes the global names as well as its own, and
+// outranks the global rule on its site.
+const site = siteRules.map((s, i) => ({
+    id: i + 2,
+    priority: 2,
+    action: { type: 'redirect', redirect: { transform: { queryTransform: {
+        removeParams: [...new Set([...safeParams, ...s.names])]
+    } } } },
+    condition: {
+        urlFilter: s.filter,
+        resourceTypes: ['main_frame'],
+        requestMethods: ['get']
+    }
+}));
+
+const rules = [global, ...site];
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(path.join(dist, 'icons'), { recursive: true });
@@ -50,4 +77,4 @@ for (const f of ['manifest.json', 'popup.html', 'popup.js', 'popup.css', 'backgr
 for (const f of ['icon16.png', 'icon48.png', 'icon128.png']) {
     fs.copyFileSync(path.join(here, '..', 'icons', f), path.join(dist, 'icons', f));
 }
-console.log(`dist: ${safeParams.length} names`);
+console.log(`dist: ${safeParams.length} global names, ${siteRules.length} site rules`);
