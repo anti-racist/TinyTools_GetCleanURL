@@ -2,9 +2,10 @@
 
 A lightweight tool that tidies up links with one click—clean, simple, and easy to share.
 
-## What's New in 2.5
+## What's New in 2.6
 
-- ✨ Removes the tracking that social media, news, search, shopping and streaming sites add to shared links and newsletter links.
+- ✨ Removes more of the personal details that email links carry, such as account and order numbers, subscriber IDs and sign-in tokens.
+- ✨ Removes more of the tracking in newsletter, shopping and search links, including newsletters published on their own domains.
 
 ## Key Features
 

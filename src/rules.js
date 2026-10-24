@@ -45,7 +45,11 @@ export const trackingParams = {
         // sfmc_sub is the subscriber number. Each one names who the email
         // was sent to, not what the page is. Tested on Muji and
         // Bloomingdale's email links: the same page without them.
-        '_kx', 'bxid', 'sfmc_sub'
+        '_kx', 'bxid', 'sfmc_sub',
+        // Silverpop (now Acoustic) email links: the mailing, the subscriber,
+        // the send job and its report. On DandelionSprout's global list, and
+        // tested on a real email link: the same page without them.
+        'spMailingID', 'spUserID', 'spJobID', 'spReportId'
     ],
     other: [
         'yclid', 'ocid', '_hsenc', '_hsmi',
@@ -376,6 +380,80 @@ const mujiPrefixes = /^_su_rec/;
 // without it.
 const yelpParams = new Set(['nid', 'ytl_', 'dd_referrer']);
 
+// Starbucks' email links (Adobe Journey Optimizer) add source, topic and
+// campaign, and correlationId, a fresh value on every click, as Macy's do.
+// Tested: the same story without them. $web_only is kept: it is Branch's
+// switch that keeps a phone on the web page instead of opening the app.
+const starbucksParams = new Set(['source', 'topic', 'campaign', 'correlationId']);
+
+// correlationId again, on OpenTable's restaurant pages. Tested on
+// opentable.co.uk: the same restaurant without it. lang is kept.
+//
+// correlationId is not stripped everywhere: AdGuard takes it only on
+// adobe.com and costco.com, and support and error pages elsewhere quote a
+// correlation id to identify a request.
+const opentableParams = new Set(['correlationId']);
+
+const opentableDomains = [
+    'opentable.com', 'opentable.co.uk', 'opentable.ca', 'opentable.com.au',
+    'opentable.de', 'opentable.ie', 'opentable.jp', 'opentable.com.mx',
+    'opentable.es', 'opentable.it', 'opentable.nl', 'opentable.ae',
+    'opentable.sg', 'opentable.hk'
+];
+
+// Costco's email links add EMID, the Adobe campaign code, and correlationId
+// (AdGuard strips it on Costco). Tested on two product links, /p/-/<id>: the
+// same item and price without them. preselect - a colour or size chosen in
+// advance - is kept.
+const costcoParams = new Set(['EMID', 'correlationId']);
+
+// Yami's order emails link to the products ordered, /p/<name>/<id>, with the
+// shopper's user_id and order_id and the kind of email. Tested: the same
+// product and price without them. Product pages only: on order and account
+// pages those names are what the page shows.
+const yamiParams = new Set(['user_id', 'order_id', 'email_type']);
+
+// Penguin Random House's emails: cktype, template_id and ref and linkid (the
+// same code twice) describe the email, pettisbn the book it was about, cdi
+// who it was sent to, and aid is an affiliate tag. On no list for this site.
+// Tested: the same book without them.
+const penguinParams = new Set([
+    'cktype', 'pettisbn', 'ref', 'linkid', 'cdi', 'template_id', 'aid'
+]);
+
+// Apartment List's emails open a shortlist page with campaign and eid, a
+// recipient number and the time it was sent. Tested: the same shortlist
+// without them. The shortlist's own id is in the path and stays: it is the
+// page.
+const apartmentlistParams = new Set(['campaign', 'eid']);
+
+// Slack's marketing emails add d and nc, Salesforce campaign ids (701...).
+// Far too short to strip anywhere else. Tested on a resources article: the
+// same page without them.
+const slackParams = new Set(['d', 'nc']);
+
+// NotebookLM: original_referer (AdGuard and uBlock Origin strip it there).
+// Tested: the same notebook without it. pli, which Google adds after sign-in,
+// is kept: signed in, the page is the same with or without it, so the test
+// cannot show what it does for someone who is not.
+const notebooklmParams = new Set(['original_referer']);
+
+// ActionKit, which campaigns use for petitions and sign-ups: akid identifies
+// the person an email went to (mailing.user.hash) and fills in the form as
+// them, so it is not passed on with a link; refcode tags the email. On no
+// list. Tested on a /go/ link from a campaign email: the same page without
+// them. c0 and t are kept: the link does not open without them.
+//
+// One campaign's host for now. Others run ActionKit on act.* hosts of their
+// own, and those wait for real links of their own.
+const actionkitParams = new Set(['akid', 'refcode']);
+
+// Stratechery's emails add access_token, a Passport sign-in token: it holds
+// the subscriber's id and gives a month's read access to whoever opens the
+// link. A sign-in token is never passed on with a link. Tested: the same
+// article without it, behind the sign-in as expected.
+const stratecheryParams = new Set(['access_token']);
+
 // --- Social, news and streaming ----------------------------------------------
 
 // What each site's Share button, newsletter or app adds. Every row was tested
@@ -406,16 +484,21 @@ const threadsParams = new Set(['xmt', 'slof']);
 //
 // midToken, midSig and eid identify the recipient and the email they came in.
 // On neither list; tested on a LinkedIn email's help-page link, which opens the
-// same page without them (lang is kept). otpToken, seen beside them once on a
-// link whose page no longer exists, is left alone until a working link shows
-// the same.
+// same page without them (lang is kept).
+//
+// otpToken is the one-click sign-in token in LinkedIn's emails: whoever opens
+// the link may be signed in as the person it was sent to. A sign-in token is
+// never passed on with a link, so it goes on every LinkedIn page, wherever it
+// sits in the query and whether or not the names above come with it. On
+// neither list and seen on no other site. Tested: a job link without it opens
+// the job.
 //
 // rcm comes on a post shared from the Android app: the sharer's member id
 // (ACoAA...), so a forwarded link says who shared it. On neither list; tested
 // on a real shared post.
 const linkedinParams = new Set([
     'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
-    'midToken', 'midSig', 'eid', 'rcm'
+    'midToken', 'midSig', 'eid', 'rcm', 'otpToken'
 ]);
 const linkedinPrefixes = /^trk/;
 
@@ -530,12 +613,22 @@ const aliexpressParams = new Set([
     'curPageLogUid', 'utparam-url'
 ]);
 
-// Temu, /<name>-g-<id>.html. All AdGuard's but search_key, the search typed.
+// Temu. AdGuard's names, on every page: an email lands on /channel/..., not
+// only on a product. Its links add _cmsg_channel, _cmsg_biz, msgid and
+// _p_landing as well, which are on no list; tested on a /channel/ page: the
+// same page, region, language and currency without them. _cmsg_locale is
+// that region, language and currency, and is kept; so are sku_id (the
+// variant) and g_ccy, g_lg and g_region, which AdGuard strips.
+//
+// search_key, the search typed, only on product pages, /<name>-g-<id>.html:
+// on a search page it is the search itself.
 const temuParams = new Set([
     'top_gallery_url', 'spec_gallery_id', 'refer_page_sn', 'refer_page_el_sn',
-    'refer_page_name', 'refer_page_id', 'freesia_scene', 'search_key'
+    'refer_page_name', 'refer_page_id', 'freesia_scene',
+    '_cmsg_channel', '_cmsg_biz', 'msgid', '_p_landing'
 ]);
 const temuPrefixes = /^(_oak_|_x_)/;
+const temuProductParams = new Set(['search_key']);
 
 // Medium's Copy link button adds ?source=copy_link. Both lists strip `source`
 // on Medium; it is far too ordinary a name to strip anywhere else.
@@ -560,6 +653,11 @@ const mediumParams = new Set(['source']);
 //                      link opened without them, in a fresh window, still
 //                      loads AI Mode and answers the question in `q` - and
 //                      the page then adds a fresh set of all three itself.
+//   aep                the entry point a search was started from
+//   zx                 the time of the request in milliseconds, a cache-
+//                      buster. AdGuard strips both on Google. Tested: an AI
+//                      Mode link without them still opens AI Mode on the
+//                      same query.
 //
 // Every one of these is also stripped by ClearURLs, and ei, ved, sxsrf and
 // sclient are what search-API documentation says to drop before sharing.
@@ -569,17 +667,31 @@ const mediumParams = new Set(['source']);
 //                      Mode and Lens, which demand them back.
 //   ie                 the query's character encoding. Without it a non-UTF-8
 //                      query is read wrongly.
-//   udm, aep           AI Mode's mode switch; without them the link opens an
-//                      ordinary results page.
-//   lns_mode, zx       not yet tested the way the AI Mode tokens were, and a
+//   udm                AI Mode's mode switch (udm=50); without it the link
+//                      opens an ordinary results page.
+//   lns_mode           not yet tested the way the AI Mode tokens were, and a
 //                      guess is not evidence.
 //   client, source, sa too ordinary to prove harmless.
 const googleSearchParams = new Set([
     'ved', 'ei', 'sei', 'sxsrf', 'oq', 'aqs', 'sourceid', 'sclient', 'rlz',
-    'sca_esv', 'sca_upv', 'iflsig', 'fbs', 'uact', 'mstk', 'csuir', 'mtid'
+    'sca_esv', 'sca_upv', 'iflsig', 'fbs', 'uact', 'mstk', 'csuir', 'mtid',
+    'aep', 'zx'
 ]);
 
 const googleSearchPrefixes = /^gs_/;
+
+// --- Substack ---------------------------------------------------------------
+
+// Substack publications often live on their own domains, so no domain list
+// can find them. They are recognised by what Substack itself adds: an article
+// page, /p/<slug>, whose link carries isFreemail or triedRedirect. Then r (the
+// sharer's referral code), publication_id and post_id go with them. AdGuard
+// strips these on substack.com only, so a publication on its own domain kept
+// them all. Tested on one: the same article without them.
+const substackSignature = new Set(['isFreemail', 'triedRedirect']);
+const substackParams = new Set([
+    'r', 'triedRedirect', 'isFreemail', 'publication_id', 'post_id'
+]);
 
 // --- The site table ---------------------------------------------------------
 
@@ -662,6 +774,20 @@ const siteRules = [
     { id: 'macys', domains: ['macys.com'], params: macysParams, prefixes: macysPrefixes },
     { id: 'muji', domains: ['muji.us', 'muji.com'], params: mujiParams, prefixes: mujiPrefixes },
     { id: 'yelp', domains: ['yelp.com'],            params: yelpParams },
+    { id: 'starbucks', domains: ['starbucks.com'], params: starbucksParams },
+    { id: 'opentable', domains: opentableDomains, params: opentableParams },
+    { id: 'costco', domains: ['costco.com'], params: costcoParams },
+    { id: 'yami', domains: ['yami.com'], params: yamiParams, path: /\/p\/[^/]+\/\d+\/?$/ },
+    { id: 'penguinrandomhouse', domains: ['penguinrandomhouse.com'], params: penguinParams },
+    { id: 'apartmentlist', domains: ['apartmentlist.com'], params: apartmentlistParams },
+    { id: 'slack', domains: ['slack.com'], params: slackParams },
+    {
+        id: 'notebooklm',
+        domains: ['notebooklm.google.com', 'notebook.google.com'],
+        params: notebooklmParams
+    },
+    { id: 'actionkit', domains: ['act.wesmoore.com'], params: actionkitParams },
+    { id: 'stratechery', domains: ['stratechery.com'], params: stratecheryParams },
     { id: 'etsy',   domains: ['etsy.com'], params: etsyParams, prefixes: etsyPrefixes, path: /^\/listing\// },
     { id: 'shein',  domains: ['shein.com', 'shein.co.uk'], params: sheinParams, path: /-p-\d+\.html$/ },
     {
@@ -670,7 +796,13 @@ const siteRules = [
         params: aliexpressParams,
         path: /^\/item\//
     },
-    { id: 'temu',   domains: ['temu.com'], params: temuParams, prefixes: temuPrefixes, path: /-g-\d+\.html$/ },
+    {
+        id: 'temu',
+        domains: ['temu.com'],
+        params: temuParams,
+        prefixes: temuPrefixes,
+        within: { path: /-g-\d+\.html$/, params: temuProductParams }
+    },
     { id: 'medium', domains: ['medium.com'], params: mediumParams },
     { id: 'ebay',      domains: ebayDomains,   params: ebayParams,   path: /^\/itm\// },
     { id: 'target',    domains: ['target.com'], params: targetParams, path: /^\/p\// },
@@ -711,3 +843,18 @@ for (const rule of siteRules) {
     }
     for (const domain of rule.domains) siteRuleByDomain.set(domain, rule);
 }
+
+// Rules for a platform that runs on its sites' own domains, found by a path
+// and by names only that platform adds rather than by the host. Tried only
+// where no site row applies.
+//
+// signature: the rule applies when the query holds at least one of these.
+export const signatureRules = [
+    {
+        id: 'substack',
+        path: /^\/p\/[^/]+\/?$/,
+        signature: fold(substackSignature),
+        params: fold(substackParams),
+        prefixes: NEVER
+    }
+];
