@@ -14,7 +14,7 @@ export const siteRules = [
         sample: 'https://www.linkedin.com/jobs/view/1/',
         names: [
             'lipi', 'trackingId', 'refId', 'originalReferer', 'original_referer',
-            'midToken', 'midSig', 'eid', 'rcm',
+            'midToken', 'midSig', 'eid', 'rcm', 'otpToken',
             // the trk family, a prefix in Get Clean URL
             'trk', 'trkEmail', 'trkInfo'
         ]
@@ -38,6 +38,7 @@ export const siteRules = [
         names: [
             'ved', 'ei', 'sei', 'sxsrf', 'oq', 'aqs', 'sourceid', 'sclient', 'rlz',
             'sca_esv', 'sca_upv', 'iflsig', 'fbs', 'uact', 'mstk', 'csuir', 'mtid',
+            'aep', 'zx',
             // the gs_ family, a prefix in Get Clean URL
             'gs_lp', 'gs_lcrp', 'gs_ssp', 'gs_l', 'gs_lcp', 'gs_ivs'
         ]

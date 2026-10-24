@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanUrl } from '../src/cleaner.js';
-import { safeParams } from './safe-params.js';
+import { safeParams, spellings } from './safe-params.js';
 import { siteRules } from './site-rules.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -22,7 +22,7 @@ for (const name of safeParams) {
     }
 }
 for (const site of siteRules) {
-    for (const name of site.names) {
+    for (const name of spellings(site.names)) {
         if (cleanUrl(`${site.sample}?${name}=1&keep=1`).removedCount !== 1) {
             throw new Error(`${name} is not stripped on ${site.id} by Get Clean URL`);
         }
@@ -38,7 +38,8 @@ for (const site of siteRules) {
 // drops the rule without a word, so the switch said On and nothing was cleaned.
 //
 // Names are matched in exactly the spelling listed: queryTransform compares
-// names case-sensitively, so UTM_Source is left as it is.
+// names case-sensitively, so a mixed spelling such as UTM_Source is left as
+// it is (all lower and all upper case are listed).
 const global = {
     id: 1,
     priority: 1,
@@ -57,7 +58,7 @@ const site = siteRules.map((s, i) => ({
     id: i + 2,
     priority: 2,
     action: { type: 'redirect', redirect: { transform: { queryTransform: {
-        removeParams: [...new Set([...safeParams, ...s.names])]
+        removeParams: [...new Set([...safeParams, ...spellings(s.names)])]
     } } } },
     condition: {
         urlFilter: s.filter,
@@ -71,8 +72,14 @@ const rules = [global, ...site];
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(path.join(dist, 'icons'), { recursive: true });
 fs.writeFileSync(path.join(dist, 'rules.json'), JSON.stringify(rules, null, 2) + '\n');
-for (const f of ['manifest.json', 'popup.html', 'popup.js', 'popup.css', 'background.js']) {
+for (const f of ['manifest.json', 'popup.html', 'popup.js', 'popup.css', 'background.js', 'log.js']) {
     fs.copyFileSync(path.join(here, f), path.join(dist, f));
+}
+// The log compares each page with what Get Clean URL's click would remove,
+// so the cleaner itself goes in too.
+fs.mkdirSync(path.join(dist, 'src'));
+for (const f of ['cleaner.js', 'rules.js']) {
+    fs.copyFileSync(path.join(here, '..', 'src', f), path.join(dist, 'src', f));
 }
 for (const f of ['icon16.png', 'icon48.png', 'icon128.png']) {
     fs.copyFileSync(path.join(here, '..', 'icons', f), path.join(dist, 'icons', f));

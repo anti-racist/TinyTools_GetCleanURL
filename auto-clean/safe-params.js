@@ -33,4 +33,10 @@ const prefixFamilies = [
     'cm_mmca6', 'cm_mmca7', 'cm_mmca8', 'cm_mmca9', 'cm_mmca10'
 ];
 
-export const safeParams = [...new Set([...prefixFamilies, ...Object.values(trackingParams).flat()])];
+// Chrome compares names case-sensitively, while Get Clean URL folds case. The
+// commonest other spellings - all lower case, all upper case - are listed as
+// well, so UTM_SOURCE and trkcampaign go too; build.mjs checks every one.
+export const spellings = names => [...new Set(names.flatMap(name =>
+    [name, name.toLowerCase(), name.toUpperCase()]))];
+
+export const safeParams = spellings([...prefixFamilies, ...Object.values(trackingParams).flat()]);

@@ -1,5 +1,7 @@
 // The switch shows the ruleset's own enabled state, and the choice is kept
 // in storage too so background.js can restore it after an update.
+import { read, clear, asText } from './log.js';
+
 const RULESET = 'safe';
 const toggle = document.getElementById('toggle');
 const status = document.getElementById('status');
@@ -26,3 +28,42 @@ toggle.addEventListener('change', async () => {
 
 show(await isOn());
 toggle.disabled = false;
+
+// The test log: a count, the latest pages, and the whole log on Copy.
+const summary = document.getElementById('log-summary');
+const list = document.getElementById('log-list');
+const SHOWN = 8;
+
+async function showLog() {
+    const log = await read();
+    const missed = log.filter(e => e.missed.length).length;
+    summary.textContent = log.length
+        ? `${log.length} pages logged, ${missed} with something missed.`
+        : 'Nothing logged yet.';
+    list.replaceChildren(...log.slice(-SHOWN).reverse().map(e => {
+        const item = document.createElement('li');
+        const where = document.createElement('span');
+        where.className = 'where';
+        where.textContent = e.host + e.path + (e.inPage ? ' (in-page)' : '');
+        const what = document.createElement('span');
+        what.className = 'what';
+        what.textContent = (e.removed.length ? 'removed ' + e.removed.join(', ') : 'removed nothing')
+            + (e.missed.length ? ' · missed ' + e.missed.join(', ') : '');
+        item.append(where, what);
+        return item;
+    }));
+}
+
+document.getElementById('copy-log').addEventListener('click', async event => {
+    const button = event.currentTarget;
+    await navigator.clipboard.writeText(asText(await read()));
+    button.textContent = 'Copied';
+    setTimeout(() => { button.textContent = 'Copy log'; }, 1500);
+});
+
+document.getElementById('clear-log').addEventListener('click', async () => {
+    await clear();
+    await showLog();
+});
+
+await showLog();

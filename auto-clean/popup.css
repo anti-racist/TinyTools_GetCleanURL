@@ -25,9 +25,27 @@ input[type="checkbox"] {
     height: 18px;
     accent-color: var(--green);
 }
-input:focus-visible {
+input:focus-visible,
+button:focus-visible {
     outline: 2px solid var(--green);
     outline-offset: 2px;
 }
 .status { margin: 8px 0 0; }
 .note { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+h2 { margin: 16px 0 0; font-size: 13px; }
+.log { border-top: 1px solid #d9d3c7; margin-top: 12px; }
+.log-list { margin: 8px 0 0; padding: 0; list-style: none; max-height: 220px; overflow-y: auto; }
+.log-list li { padding: 4px 0; border-bottom: 1px solid #e6e0d4; font-size: 12px; }
+.where { display: block; overflow-wrap: anywhere; }
+.what { display: block; color: var(--muted); overflow-wrap: anywhere; }
+.buttons { display: flex; gap: 8px; margin-top: 8px; }
+button {
+    font: inherit;
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px solid var(--green);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--green);
+    cursor: pointer;
+}
