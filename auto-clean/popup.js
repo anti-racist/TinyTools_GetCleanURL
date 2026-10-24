@@ -29,6 +29,19 @@ toggle.addEventListener('change', async () => {
 show(await isOn());
 toggle.disabled = false;
 
+// Off by default. Chrome's own count: 1 on a page a rule cleaned, nothing on
+// one it left alone. It counts what the rule did on the page, not how many
+// names it took, and needs no permission of its own.
+const badge = document.getElementById('badge');
+badge.checked = (await chrome.storage.local.get('badge')).badge === true;
+badge.disabled = false;
+badge.addEventListener('change', async () => {
+    await chrome.storage.local.set({ badge: badge.checked });
+    await chrome.declarativeNetRequest.setExtensionActionOptions({
+        displayActionCountAsBadgeText: badge.checked
+    });
+});
+
 // The test log: a count, the latest pages, and the whole log on Copy.
 const summary = document.getElementById('log-summary');
 const list = document.getElementById('log-list');

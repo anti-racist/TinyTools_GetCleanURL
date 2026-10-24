@@ -7,9 +7,12 @@ import { describe, append } from './log.js';
 const RULESET = 'safe';
 
 async function apply() {
-    const { on = false } = await chrome.storage.local.get('on');
+    const { on = false, badge = false } = await chrome.storage.local.get(['on', 'badge']);
     await chrome.declarativeNetRequest.updateEnabledRulesets(
         on ? { enableRulesetIds: [RULESET] } : { disableRulesetIds: [RULESET] });
+    await chrome.declarativeNetRequest.setExtensionActionOptions({
+        displayActionCountAsBadgeText: badge
+    });
 }
 
 chrome.runtime.onStartup.addListener(apply);
