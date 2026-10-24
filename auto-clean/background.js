@@ -21,7 +21,9 @@ chrome.runtime.onInstalled.addListener(apply);
 
 // --- The number on the icon (off by default) -------------------------------
 //
-// How many names the rules took from the page in this tab. Chrome's own
+// How many names the rules took from the page in this tab, counted as Get
+// Clean URL counts its "tracking parameters removed": one for each pair, so a
+// name that came twice counts twice. Chrome's own
 // action count could not say: one redirect removes every name at once, so it
 // read 1 on every cleaned page. Instead the redirect is watched as it
 // happens - webRequest sees the address before and after - and counted once
