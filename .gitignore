@@ -6,6 +6,9 @@
 # every commit, and the release shipped without it.
 !icons/*.png
 
+# ...and the design mockups kept beside the automatic-cleaner experiment.
+!auto-clean/design/*.png
+
 # Ignore all .txt files
 *.txt
 
