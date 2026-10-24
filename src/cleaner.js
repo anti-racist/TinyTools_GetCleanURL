@@ -4,7 +4,8 @@
 import {
     globalTrackingParams,
     trackingPrefixes,
-    siteRuleByDomain
+    siteRuleByDomain,
+    signatureRules
 } from './rules.js';
 
 // Find the site rule for a hostname by walking its suffixes:
@@ -23,6 +24,19 @@ function siteRuleFor(hostname) {
         if (dot === -1) return null;
         candidate = candidate.slice(dot + 1);
     }
+}
+
+// The signature rule for a page off every site row, or null. A name is read
+// the way isTrackingParam reads it: folded, past one stray '?'.
+function signatureRuleFor(url) {
+    const rules = signatureRules.filter(rule => rule.path.test(url.pathname));
+    if (rules.length === 0 || !url.search) return null;
+
+    const names = new Set();
+    for (const key of new URLSearchParams(url.search).keys()) {
+        names.add((key.startsWith('?') ? key.slice(1) : key).toLowerCase());
+    }
+    return rules.find(rule => [...rule.signature].some(name => names.has(name))) || null;
 }
 
 // Strip tracking keys out of a fragment without discarding the fragment
@@ -148,6 +162,7 @@ export function cleanUrl(urlString) {
         let rule = siteRuleFor(url.hostname);
         if (rule && rule.path && !rule.path.test(url.pathname)) rule = null;
         if (rule && rule.within && rule.within.path.test(url.pathname)) rule = rule.within.rule;
+        if (!rule) rule = signatureRuleFor(url);
 
         if (rule && rule.canonicalPath) {
             const canonical = rule.canonicalPath(url.pathname.split('/').filter(Boolean));
