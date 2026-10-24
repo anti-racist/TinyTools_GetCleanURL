@@ -429,9 +429,7 @@ const apartmentlistParams = new Set(['campaign', 'eid']);
 
 // Slack's marketing emails add d and nc, Salesforce campaign ids (701...).
 // Far too short to strip anywhere else. Tested on a resources article: the
-// same page without them. Resources pages only (/resources/, or under
-// /intl/<language>/): slack.com also serves the app and every workspace, and
-// those are where these names were not tested.
+// same page without them.
 const slackParams = new Set(['d', 'nc']);
 
 // NotebookLM: original_referer (AdGuard and uBlock Origin strip it there).
@@ -782,12 +780,7 @@ const siteRules = [
     { id: 'yami', domains: ['yami.com'], params: yamiParams, path: /\/p\/[^/]+\/\d+\/?$/ },
     { id: 'penguinrandomhouse', domains: ['penguinrandomhouse.com'], params: penguinParams },
     { id: 'apartmentlist', domains: ['apartmentlist.com'], params: apartmentlistParams },
-    {
-        id: 'slack',
-        domains: ['slack.com'],
-        params: slackParams,
-        path: /^\/(?:intl\/[^/]+\/)?resources\//
-    },
+    { id: 'slack', domains: ['slack.com'], params: slackParams },
     {
         id: 'notebooklm',
         domains: ['notebooklm.google.com', 'notebook.google.com'],
