@@ -6,9 +6,9 @@ A separate, experimental extension that removes common tracking parameters autom
 
 Every global name in Get Clean URL's rules, with the prefix families - `utm_`, `fb_`, `pk_`, `mtm_`, `hsa_`, `cm_mmc` - spelled out, since Chrome cannot match a prefix, and each name also in all lower and all upper case (573 in all). It is built from `src/rules.js`, so the two never drift apart. Site rules for LinkedIn, YouTube and Google search; other sites' rules stay with Get Clean URL's one click. Chrome matches names exactly, so a mixed spelling such as `Utm_Source`, and `utm_` names outside the list, are left as they are.
 
-## Icon number (0.3.2)
+## Icon number (0.3.3)
 
-Off by default; switched on in the popup. Chrome's own count of what the rules did on the page: 1 on a page that was cleaned, nothing on one left alone. It is not the number of names removed: Chrome gives that only to a test build. It needs no permission of its own.
+Off by default; switched on in the popup. How many names were removed from the page in this tab: 3 when a link lost three. 0.3.2 showed Chrome's own count instead, which is 1 on every cleaned page, since one redirect removes them all. The redirect is watched with `webRequest`, which only observes. It should add no warning of its own beyond the access to all sites; to be confirmed before any release.
 
 ## Test log (0.3.1)
 
@@ -29,6 +29,7 @@ Then Load unpacked `auto-clean/dist`.
 - `declarativeNetRequest`: removes the parameters from the address before the page loads.
 - Access to all sites: Chrome only rewrites an address for a site the extension has access to.
 - `storage`: keeps the switch on or off across updates, and the test log.
+- `webRequest`: sees each cleaned address before and after, for the number on the icon.
 - `declarativeNetRequestFeedback` and `webNavigation` (test build only): what each rule removed, and where each page ended up, for the log.
 
 Nothing is sent anywhere. The rules are in the package and never downloaded.

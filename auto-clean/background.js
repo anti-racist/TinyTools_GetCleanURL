@@ -7,16 +7,49 @@ import { describe, append } from './log.js';
 const RULESET = 'safe';
 
 async function apply() {
-    const { on = false, badge = false } = await chrome.storage.local.get(['on', 'badge']);
+    const { on = false } = await chrome.storage.local.get('on');
     await chrome.declarativeNetRequest.updateEnabledRulesets(
         on ? { enableRulesetIds: [RULESET] } : { disableRulesetIds: [RULESET] });
+    // 0.3.2 showed Chrome's own count, which is 1 on every cleaned page.
     await chrome.declarativeNetRequest.setExtensionActionOptions({
-        displayActionCountAsBadgeText: badge
+        displayActionCountAsBadgeText: false
     });
 }
 
 chrome.runtime.onStartup.addListener(apply);
 chrome.runtime.onInstalled.addListener(apply);
+
+// --- The number on the icon (off by default) -------------------------------
+//
+// How many names the rules took from the page in this tab. Chrome's own
+// action count could not say: one redirect removes every name at once, so it
+// read 1 on every cleaned page. Instead the redirect is watched as it
+// happens - webRequest sees the address before and after - and counted once
+// the page has loaded, because a page's badge is cleared as it starts to
+// load. Only names in the rules count, so a site's own redirect that drops a
+// parameter is not taken for the cleaner's.
+const allNames = fetch(chrome.runtime.getURL('rules.json'))
+    .then(response => response.json())
+    .then(rules => new Set(rules.flatMap(rule =>
+        rule.action.redirect.transform.queryTransform.removeParams)));
+
+const takenInTab = new Map();
+
+chrome.webRequest.onBeforeRedirect.addListener(async details => {
+    const names = await allNames;
+    const after = new URL(details.redirectUrl).searchParams;
+    const taken = [...new URL(details.url).searchParams.keys()]
+        .filter(name => names.has(name) && !after.has(name)).length;
+    if (taken) takenInTab.set(details.tabId, (takenInTab.get(details.tabId) || 0) + taken);
+}, { urls: ['<all_urls>'], types: ['main_frame'] });
+
+chrome.tabs.onUpdated.addListener(async (tabId, change) => {
+    if (change.status !== 'complete') return;
+    const taken = takenInTab.get(tabId) || 0;
+    takenInTab.delete(tabId);
+    const { badge = false } = await chrome.storage.local.get('badge');
+    await chrome.action.setBadgeText({ tabId, text: badge && taken ? String(taken) : '' });
+});
 
 // --- Test build only: the log ------------------------------------------------
 //
@@ -71,4 +104,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(details => {
     record(details.url, [], true);
 });
 
-chrome.tabs.onRemoved.addListener(tabId => removedInTab.delete(tabId));
+chrome.tabs.onRemoved.addListener(tabId => {
+    removedInTab.delete(tabId);
+    takenInTab.delete(tabId);
+});
