@@ -2,10 +2,12 @@
 
 A lightweight tool that tidies up links with one click—clean, simple, and easy to share.
 
-## What's New in 2.6
+## What's New in 3.0
 
-- ✨ Removes more of the personal details that email links carry, such as account and order numbers, subscriber IDs and sign-in tokens.
-- ✨ Removes more of the tracking in newsletter, shopping and search links, including newsletters published on their own domains.
+- ✨ Auto-clean (experimental): removes common tracking parameters from links as each page opens. It is off until you turn it on, and you can choose sites for it to leave alone.
+- ✨ Shows how many tracking parameters your clicks have removed to date, counted in your browser only.
+- ✨ When a link has nothing to remove, the popup now says so in green: No tracking parameters removed.
+- ✨ Cleans more search results pages.
 
 ## Key Features
 
@@ -20,7 +22,7 @@ A lightweight tool that tidies up links with one click—clean, simple, and easy
 
 ## Privacy
 
-The extension sends nothing anywhere, stores nothing and has no server. Access to other tabs is requested only when **Copy all open tabs** is first used.
+The extension sends nothing anywhere and has no server. It keeps its settings and the running count in your browser's own storage. Access to other tabs is requested only when **Copy all open tabs** is first used, and access to all sites only when **Auto-clean** is turned on.
 
 Full details: [privacy policy](PRIVACY.md).
 

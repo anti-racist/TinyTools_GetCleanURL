@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" 
+    <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
                    script-src 'self';
                    style-src 'self';
@@ -15,9 +15,58 @@
 </head>
 <body>
     <div class="popup-container">
-        <div id="url-display" hidden></div>
-        <div id="message" role="status"></div>
-        <button id="copy-all" type="button">Copy all open tabs</button>
+        <section class="settings" aria-label="Automatic cleaning">
+            <div class="switch-row">
+                <div class="switch-label">
+                    <span id="auto-label">Auto-clean address bar</span>
+                    <span class="tag">Experimental</span>
+                </div>
+                <span id="auto-state" class="switch-state" aria-hidden="true">Off</span>
+                <button id="auto-switch" class="switch" type="button" role="switch"
+                        aria-checked="false" aria-labelledby="auto-label" disabled>
+                    <span class="knob"></span>
+                </button>
+            </div>
+            <p id="auto-note" class="note" hidden></p>
+            <div id="auto-row" class="auto-row" hidden>
+                <button id="exclude" class="link-button" type="button">
+                    <svg class="icon" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.6"/><path d="M2.8 9.2 9.2 2.8"/></svg>
+                    <span id="exclude-text">Exclude current site</span>
+                </button>
+                <button id="edit-sites" class="link-button" type="button">Edit sites ›</button>
+            </div>
+            <p id="counter" class="counter" hidden>
+                <span id="counter-number" class="count"></span>
+                tracking parameters removed to date
+            </p>
+        </section>
+
+        <section id="status" class="status" hidden>
+            <div id="url-display" hidden></div>
+            <div id="message" role="status"></div>
+        </section>
+
+        <button id="copy-all" type="button">
+            <svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><rect x="4.5" y="4.5" width="7.5" height="7.5" rx="1.5"/><path d="M9.5 2.5V2a1 1 0 0 0-1-1H3a1.5 1.5 0 0 0-1.5 1.5V8a1 1 0 0 0 1 1h.5"/></svg>
+            Copy all open tabs
+        </button>
+
+        <aside id="thanks" class="thanks" hidden>
+            <p class="thanks-title">Thank you for supporting<br>Get Clean URL.</p>
+            <p class="thanks-detail">Because of people like you,<br>it stays free and ad-free.</p>
+            <svg class="thanks-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5S3.5 15.3 3.5 9.2A4.4 4.4 0 0 1 12 6.8a4.4 4.4 0 0 1 8.5 2.4c0 6.1-8.5 11.3-8.5 11.3z"/></svg>
+        </aside>
+
+        <footer id="support" class="support" hidden>
+            <a id="rate" class="support-link" href="https://chromewebstore.google.com/detail/get-clean-url/mobpimjmmonkghndllikpdgpapkfckje/reviews" target="_blank" rel="noopener noreferrer">
+                <svg class="icon" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.2 7.4 4.1l3.2.4-2.3 2.2.6 3.2L6 8.4 3.1 9.9l.6-3.2L1.4 4.5l3.2-.4z"/></svg>
+                Rate Get Clean URL
+            </a>
+            <a id="coffee" class="support-link" href="https://www.buymeacoffee.com/getcleanurl" target="_blank" rel="noopener noreferrer">
+                <svg class="icon" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 5h6.5v2.5A2.5 2.5 0 0 1 6 10H4.5A2.5 2.5 0 0 1 2 7.5z"/><path d="M8.5 5.8h.7a1.3 1.3 0 0 1 0 2.6h-.9"/><path d="M4 1.5v1.8M6.3 1.5v1.8"/></svg>
+                Buy me a coffee
+            </a>
+        </footer>
     </div>
     <script type="module" src="popup.js"></script>
 </body>
