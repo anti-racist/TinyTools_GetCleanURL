@@ -7,7 +7,7 @@ import {
 } from './src/browser.js';
 import { createRenderer, tone } from './src/ui.js';
 import { ALL_SITES, normaliseSite, isExcluded } from './src/auto.js';
-import { addRemoved, takeCount, formatCount } from './src/stats.js';
+import { addRemoved, readCount, formatCount } from './src/stats.js';
 
 // Counts the click's removals toward the running total. Opening the popup
 // copies again, so the same address is counted once, not on every opening.
@@ -90,9 +90,7 @@ async function copyAllTabs(granted, show, restore) {
         merged: list.merged
     });
     await addRemoved(list.removed);
-    // Shown now and marked seen, so the next opening's +N is not this click.
-    const { total } = await takeCount();
-    showCount(total, 0);
+    showCount(await readCount());
 }
 
 // --- Around the card: the count, the switch, support --------------------------
@@ -104,16 +102,12 @@ const today = () => new Date().toLocaleDateString('en-CA');
 const $ = id => document.getElementById(id);
 
 // "N tracking parameters removed to date". Hidden at zero rather than showing
-// a 0. delta is what came in since the popup was last opened (automatic
-// cleaning's work, mostly), shown once.
-function showCount(total, delta) {
+// a 0.
+function showCount(total) {
     const line = $('counter');
     if (!line) return;
     line.hidden = total === 0;
     $('counter-number').textContent = formatCount(total);
-    const plus = $('counter-delta');
-    plus.hidden = !(delta > 0);
-    plus.textContent = delta > 0 ? '+' + formatCount(delta) : '';
 }
 
 // The support row stays off browser pages, where there is nothing to share;
@@ -304,16 +298,12 @@ async function main() {
     }
 
     wireSupport();
-    // Read before this opening's own click is counted, so +N is what came in
-    // between openings.
-    const before = await takeCount().catch(() => ({ total: 0, delta: 0 }));
-    showCount(before.total, before.delta);
+    showCount(await readCount().catch(() => 0));
 
     const tab = await copyCurrentTab(claimant());
 
-    // The click may have added to the total; the +N stays as it was.
-    const after = await takeCount().catch(() => before);
-    showCount(after.total, before.delta);
+    // The click may have added to the total.
+    showCount(await readCount().catch(() => 0));
     await wireSwitch(tab);
 }
 

@@ -30,7 +30,7 @@ Everything below stays in your browser's own storage (`chrome.storage.local`) on
 | --- | --- |
 | Auto-clean on or off | One setting |
 | Excluded sites | The sites you chose for Auto-clean to leave alone, as bare names such as `example.com` |
-| Running count | How many tracking parameters have been removed to date: a number only, no addresses or names |
+| Running count | How many tracking parameters the toolbar icon and **Copy all open tabs** have removed to date: a number only, no addresses or names |
 | Last page counted | A fingerprint (a SHA-256 hash) of the last address the toolbar icon cleaned, so reopening the popup on the same page does not count it twice. The address cannot be read back from it. Replaced on the next one |
 | Thank-you day | The date you last clicked **Rate Get Clean URL** or **Buy me a coffee**, so the thank-you card shows for the rest of that day |
 
@@ -46,7 +46,6 @@ Everything below stays in your browser's own storage (`chrome.storage.local`) on
 | `clipboardWrite` | To put the cleaned link on your clipboard |
 | `storage` | To keep the settings and the count listed above |
 | `declarativeNetRequestWithHostAccess` | For Auto-clean: lets the browser remove tracking parameters from an address before the page loads. It does nothing on any site until you allow access to all sites |
-| `webRequest` | For the count: sees each address Auto-clean has just cleaned, to count the parameters removed. It only observes, and like the item above it sees nothing until you allow access to all sites |
 | `tabs` (optional) | To read the addresses of your other open tabs for **Copy all open tabs**. You can decline it, or remove it later in your browser's extension settings; copying the current tab still works |
 | Access to all sites (optional) | For Auto-clean, asked for when you turn it on and given back when you turn it off. You can decline it; everything else still works |
 

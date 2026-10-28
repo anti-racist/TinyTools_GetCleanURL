@@ -7,8 +7,7 @@
     "activeTab",
     "clipboardWrite",
     "storage",
-    "declarativeNetRequestWithHostAccess",
-    "webRequest"
+    "declarativeNetRequestWithHostAccess"
   ],
   "optional_permissions": [
     "tabs"

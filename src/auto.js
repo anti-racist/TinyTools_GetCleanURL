@@ -128,11 +128,6 @@ export function buildRules(excluded = []) {
     return [global, ...sites];
 }
 
-// Every name any rule removes. The count on the popup uses it to tell
-// automatic cleaning's redirects from a site's own.
-export const allAutoNames = new Set(buildRules().flatMap(rule =>
-    rule.action.redirect.transform.queryTransform.removeParams));
-
 // What the person typed into the excluded-sites box, as a bare host: no
 // scheme, no www., no path or port, lower case. null when it is not a host.
 export function normaliseSite(input) {

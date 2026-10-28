@@ -1,6 +1,11 @@
-// The running count on the popup: tracking parameters removed to date, by
-// the click and by automatic cleaning together. It stays in this browser's
-// own storage and holds a number only - never an address or a name.
+// The running count on the popup: tracking parameters removed to date by the
+// click and by Copy all open tabs. It stays in this browser's own storage and
+// holds a number only - never an address or a name.
+//
+// Automatic cleaning is not counted. Seeing its redirects needs webRequest,
+// and Chrome refuses a webRequest listener - with an error on the extension's
+// page - until access to all sites is granted, which is only once Auto-clean
+// is turned on; a listener added later does not wake the background worker.
 
 const KEY = 'removed';
 
@@ -12,23 +17,16 @@ export function addRemoved(n) {
     pending = pending.then(async () => {
         const { [KEY]: stats = {} } = await chrome.storage.local.get(KEY);
         await chrome.storage.local.set({
-            [KEY]: { total: (stats.total || 0) + n, seen: stats.seen || 0 }
+            [KEY]: { total: (stats.total || 0) + n }
         });
     }).catch(error => console.warn('count not saved:', error));
     return pending;
 }
 
-// The total, and how much of it came since the popup was last opened. Reading
-// it marks the whole total seen, so the same +N is shown only once.
-export async function takeCount() {
+export async function readCount() {
     await pending;
     const { [KEY]: stats = {} } = await chrome.storage.local.get(KEY);
-    const total = stats.total || 0;
-    const seen = Math.min(stats.seen || 0, total);
-    if (seen !== total) {
-        await chrome.storage.local.set({ [KEY]: { total, seen: total } });
-    }
-    return { total, delta: total - seen };
+    return stats.total || 0;
 }
 
 // 47, 1,284, 12.8K, 128K, 1.28M, 12.8M, 1.28B. Rounded down, so the count

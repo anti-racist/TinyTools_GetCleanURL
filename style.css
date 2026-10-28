@@ -206,20 +206,6 @@ body {
     color: var(--ink);
 }
 
-/* Passing feedback, so the one place green appears outside a card. */
-.delta {
-    color: var(--green);
-    font-weight: 500;
-    margin-left: 4px;
-}
-
-.delta::before {
-    content: "\25CF";
-    font-size: 7px;
-    vertical-align: middle;
-    margin-right: 3px;
-}
-
 /* --- The status card ----------------------------------------------------- */
 
 /* A bar on the left edge - square outside, rounded 4px inside - and a tint.

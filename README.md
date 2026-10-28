@@ -5,7 +5,7 @@ A lightweight tool that tidies up links with one click—clean, simple, and easy
 ## What's New in 3.0
 
 - ✨ Auto-clean (experimental): removes common tracking parameters from links as each page opens. It is off until you turn it on, and you can choose sites for it to leave alone.
-- ✨ Shows how many tracking parameters have been removed to date, counted in your browser only.
+- ✨ Shows how many tracking parameters your clicks have removed to date, counted in your browser only.
 - ✨ When a link has nothing to remove, the popup now says so in green: No tracking parameters removed.
 - ✨ Cleans more search results pages.
 
