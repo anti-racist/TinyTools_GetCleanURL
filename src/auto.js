@@ -40,7 +40,13 @@ const prefixFamilies = [
 export const spellings = names => [...new Set(names.flatMap(name =>
     [name, name.toLowerCase(), name.toUpperCase()]))];
 
-export const globalNames = spellings([...prefixFamilies, ...Object.values(trackingParams).flat()]);
+// Names the click removes everywhere but automatic cleaning leaves: an email
+// address or an email's id can be what a verify, sign-in or unsubscribe page
+// needs, and automatic cleaning works unseen, on every page.
+const clickOnly = new Set(['email_id', 'user_email_address']);
+
+export const globalNames = spellings([...prefixFamilies, ...Object.values(trackingParams).flat()]
+    .filter(name => !clickOnly.has(name)));
 
 // Site rules, a few at a time. Automatic cleaning works silently and on every
 // page of a site - sign-in, checkout, account - while the click's site rules
@@ -147,8 +153,13 @@ export function normaliseSite(input) {
     return host;
 }
 
+// The excluded site a hostname falls under - itself or a parent - or null.
+export function excludedBy(hostname, excluded) {
+    const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
+    return excluded.find(site => host === site || host.endsWith('.' + site)) || null;
+}
+
 // Whether a hostname is one of the excluded sites or under one.
 export function isExcluded(hostname, excluded) {
-    const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
-    return excluded.some(site => host === site || host.endsWith('.' + site));
+    return excludedBy(hostname, excluded) !== null;
 }

@@ -272,8 +272,49 @@ body {
 }
 
 .message-text .title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 14px;
     font-weight: 500;
+}
+
+/* Copied: the tick draws in one stroke while the bar grows down beside it. */
+.tick {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tick path {
+    stroke-dasharray: 16;
+    stroke-dashoffset: 16;
+    animation: draw 0.3s ease-out 0.08s forwards;
+}
+
+.status.success::before {
+    transform-origin: top;
+    animation: grow 0.3s ease-out;
+}
+
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes grow {
+    from {
+        transform: scaleY(0);
+    }
+    to {
+        transform: scaleY(1);
+    }
 }
 
 .message-text .detail {
@@ -404,8 +445,14 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .status {
+    .status,
+    .status.success::before {
         animation: none;
+    }
+    /* The tick is drawn at once rather than left blank. */
+    .tick path {
+        animation: none;
+        stroke-dashoffset: 0;
     }
     .switch,
     .switch .knob {

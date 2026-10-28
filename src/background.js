@@ -23,8 +23,17 @@ async function sync() {
     });
 }
 
+// One sync at a time, each reading the state afresh. Turning the switch on
+// fires two events at once (access granted, choice stored); two syncs
+// interleaving could read the old state after the other had written the
+// rules, and remove them - leaving the switch On with nothing cleaned.
+let queue = Promise.resolve();
+
 function syncLogged() {
-    return sync().catch(error => console.warn('automatic cleaning not updated:', error));
+    queue = queue
+        .then(sync)
+        .catch(error => console.warn('automatic cleaning not updated:', error));
+    return queue;
 }
 
 chrome.runtime.onInstalled.addListener(syncLogged);

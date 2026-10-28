@@ -142,7 +142,22 @@ export function createRenderer(urlDisplayElement, messageElement, cardElement) {
         // glyph, which CSS cannot restyle.
         const mainLine = document.createElement('div');
         mainLine.className = 'title';
-        mainLine.textContent = main;
+        // Copied gets a tick that draws itself in, as the card's bar grows
+        // down beside it: a small, quiet sign the copy happened. Only on
+        // green - nothing is celebrated over a problem. The stylesheet turns
+        // the motion off under prefers-reduced-motion; the tick stays.
+        if (className === 'success') {
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const tick = document.createElementNS(svgNS, 'svg');
+            tick.setAttribute('class', 'tick');
+            tick.setAttribute('viewBox', '0 0 14 14');
+            tick.setAttribute('aria-hidden', 'true');
+            const path = document.createElementNS(svgNS, 'path');
+            path.setAttribute('d', 'M2.5 7.5 5.6 10.5 11.5 3.5');
+            tick.appendChild(path);
+            mainLine.appendChild(tick);
+        }
+        mainLine.appendChild(document.createTextNode(main));
         container.appendChild(mainLine);
 
         // The second line used to be faded to 0.9. The difference was not

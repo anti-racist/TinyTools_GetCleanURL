@@ -6,7 +6,7 @@ import {
     getActiveTab, getAllTabs, copyToClipboard, requestTabsPermission
 } from './src/browser.js';
 import { createRenderer, tone } from './src/ui.js';
-import { ALL_SITES, normaliseSite, isExcluded } from './src/auto.js';
+import { ALL_SITES, normaliseSite, excludedBy } from './src/auto.js';
 import { addRemoved, readCount, formatCount } from './src/stats.js';
 
 // Counts the click's removals toward the running total. Opening the popup
@@ -95,9 +95,15 @@ async function copyAllTabs(granted, show, restore) {
 
 // --- Around the card: the count, the switch, support --------------------------
 
-// The day, in the person's own time zone: the thank-you card lasts until
-// midnight.
-const today = () => new Date().toLocaleDateString('en-CA');
+// The thank-you card shows for a day after a support link is clicked. A day
+// rather than until midnight: opening the store page closes the popup, so a
+// click late in the evening would otherwise leave the card nowhere to be seen.
+const THANKS_FOR = 24 * 60 * 60 * 1000;
+
+// thanked is the time of the click in milliseconds. Anything else (nothing
+// stored, or a value from an earlier build) counts as no click.
+const thankedRecently = thanked =>
+    typeof thanked === 'number' && Date.now() - thanked >= 0 && Date.now() - thanked < THANKS_FOR;
 
 const $ = id => document.getElementById(id);
 
@@ -111,15 +117,19 @@ function showCount(total) {
 }
 
 // The support row stays off browser pages, where there is nothing to share;
-// the thank-you card stays away from an error.
+// the thank-you card stays away from an error. Only the latest state's answer
+// is used: a slower read for an earlier state must not overwrite it.
+let extrasFor = 0;
 async function showExtras(state) {
+    const mine = ++extrasFor;
     const kind = tone(state.kind);
     const browserPage = state.kind === 'not-shareable' || state.kind === 'no-tab';
     const support = $('support');
     if (support) support.hidden = state.kind === 'loading' || browserPage;
     const { thanked } = await chrome.storage.local.get('thanked');
+    if (mine !== extrasFor) return;
     const thanks = $('thanks');
-    if (thanks) thanks.hidden = thanked !== today() || kind === 'error' || state.kind === 'loading';
+    if (thanks) thanks.hidden = !thankedRecently(thanked) || kind === 'error' || state.kind === 'loading';
 }
 
 // Rate and Buy me a coffee open in a new tab. The day is written first,
@@ -130,7 +140,7 @@ function wireSupport() {
     for (const link of document.querySelectorAll('.support-link')) {
         link.addEventListener('click', async event => {
             event.preventDefault();
-            await chrome.storage.local.set({ thanked: today() });
+            await chrome.storage.local.set({ thanked: Date.now() });
             chrome.tabs.create({ url: link.href });
         });
     }
@@ -163,44 +173,53 @@ async function wireSwitch(tab) {
         const exclude = $('exclude');
         exclude.hidden = !host;
         if (host) {
+            // The entry that covers this page, which may be a parent: the
+            // label and Undo are about that entry, not just this host.
             const { excluded = [] } = await chrome.storage.local.get('excluded');
-            const off = isExcluded(host, excluded);
-            exclude.dataset.excluded = String(off);
-            $('exclude-text').textContent = off ? `Excluded ${host} · Undo` : 'Exclude current site';
+            const by = excludedBy(host, excluded);
+            $('exclude-text').textContent = by ? `Excluded ${by} · Undo` : 'Exclude current site';
         }
     }
 
+    // A second click while the first is still waiting on Chrome's prompt
+    // would ask twice; the switch is held until the first is done.
+    let busy = false;
     button.addEventListener('click', async () => {
+        if (busy) return;
+        busy = true;
         const turningOn = button.getAttribute('aria-checked') !== 'true';
         note.hidden = true;
-        if (turningOn) {
-            // Asked for before anything is awaited, or the gesture is lost.
-            const asked = chrome.permissions.request(ALL_SITES);
-            let granted = false;
-            try {
-                granted = await asked;
-            } catch (error) {
-                console.warn('permissions.request failed:', error);
+        try {
+            if (turningOn) {
+                // Asked for before anything is awaited, or the gesture is lost.
+                let granted = false;
+                try {
+                    granted = await chrome.permissions.request(ALL_SITES);
+                } catch (error) {
+                    console.warn('permissions.request failed:', error);
+                }
+                if (!granted) {
+                    note.textContent = 'Turning this on needs access to all sites, to clean each link as it opens.';
+                    note.hidden = false;
+                    await render(false);
+                    return;
+                }
+                await chrome.storage.local.set({ auto: true });
+            } else {
+                await chrome.storage.local.set({ auto: false });
+                await chrome.permissions.remove(ALL_SITES).catch(() => {});
             }
-            if (!granted) {
-                note.textContent = 'Turning this on needs access to all sites, to clean each link as it opens.';
-                note.hidden = false;
-                return render(false);
-            }
-            await chrome.storage.local.set({ auto: true });
-        } else {
-            await chrome.storage.local.set({ auto: false });
-            await chrome.permissions.remove(ALL_SITES).catch(() => {});
+            await render(await isOn());
+        } finally {
+            busy = false;
         }
-        render(await isOn());
     });
 
     $('exclude').addEventListener('click', async () => {
         if (!host) return;
         const { excluded = [] } = await chrome.storage.local.get('excluded');
-        const next = isExcluded(host, excluded)
-            ? excluded.filter(site => !isExcluded(host, [site]))
-            : [...excluded, host];
+        const by = excludedBy(host, excluded);
+        const next = by ? excluded.filter(site => site !== by) : [...excluded, host];
         await chrome.storage.local.set({ excluded: next });
         render(true);
     });
