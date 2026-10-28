@@ -16,6 +16,7 @@ export function buildTabList(tabs) {
     const links = [];
     let skipped = 0;
     let merged = 0;
+    let removed = 0;
 
     for (const tab of tabs || []) {
         const url = tab && tab.url;
@@ -42,6 +43,8 @@ export function buildTabList(tabs) {
             continue;
         }
 
+        removed += cleaned.removedCount;
+
         if (seen.has(cleaned.url)) {
             merged++;
             continue;
@@ -50,5 +53,7 @@ export function buildTabList(tabs) {
         links.push(cleaned.url);
     }
 
-    return { text: links.join('\n'), copied: links.length, skipped, merged };
+    // `removed` is every tracking parameter taken from every tab, duplicates
+    // included: each was on a tab the person had open.
+    return { text: links.join('\n'), copied: links.length, skipped, merged, removed };
 }

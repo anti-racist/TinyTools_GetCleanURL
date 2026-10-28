@@ -61,8 +61,12 @@ function lines(state) {
             return ['Copied', state.removed
                 ? `${count(state.removed, 'tracking parameter')} removed`
                 : 'Shortened'];
+        // Not "Already clean": the extension only knows that nothing on its
+        // lists was found. Unknown names, an id in the path or an encrypted
+        // wrapper can still be there. This says what it did, and reads as the
+        // cleaned line with the number at zero.
         case 'already-clean':
-            return ['Copied', 'Already clean'];
+            return ['Copied', 'No tracking parameters removed'];
         case 'not-shareable':
             return ['Nothing to copy', 'Browser pages cannot be shared'];
         case 'no-tab':
@@ -91,12 +95,12 @@ function batchDetail({ skipped = 0, merged = 0 }) {
 
 function tone(kind) {
     switch (kind) {
+        // Green is copied, whatever was or was not removed: yellow used to mark
+        // already-clean as well, and read as a problem to look for.
         case 'cleaned':
         case 'batch-copied':
-            return 'success';
-        // This one did copy something; it just had nothing to strip.
         case 'already-clean':
-            return 'info';
+            return 'success';
         // Nothing was copied; the clipboard still holds what it held before.
         // Same yellow, no tick.
         case 'not-shareable':
@@ -109,13 +113,27 @@ function tone(kind) {
     }
 }
 
-export function createRenderer(urlDisplayElement, messageElement) {
+// The kind of state the popup is in, for the parts around the card: the
+// thank-you card stays away from an error, and the support row from a
+// browser page.
+export { tone };
+
+// cardElement holds the box and the message and takes the state's colour; it
+// is hidden while there is nothing to say.
+export function createRenderer(urlDisplayElement, messageElement, cardElement) {
     function paint(main, sub, className) {
         messageElement.innerHTML = '';
-        messageElement.className = className;
+        messageElement.className = 'message-text-wrap';
+        if (cardElement) {
+            cardElement.className = 'status ' + className;
+            cardElement.hidden = false;
+        } else {
+            messageElement.className = className;
+        }
 
         const container = document.createElement('div');
         container.className = 'message-text';
+        // The main line is the state's title, the second its detail.
 
         // The error state used to add a warning sign here on top of the
         // cross the stylesheet already draws, so it showed two marks, and
@@ -123,6 +141,7 @@ export function createRenderer(urlDisplayElement, messageElement) {
         // U+26A0 U+FE0F - the variation selector forces the colour emoji
         // glyph, which CSS cannot restyle.
         const mainLine = document.createElement('div');
+        mainLine.className = 'title';
         mainLine.textContent = main;
         container.appendChild(mainLine);
 
@@ -130,6 +149,7 @@ export function createRenderer(urlDisplayElement, messageElement) {
         // visible, and on the red state it cost 5.76:1 down to 4.91.
         if (sub) {
             const subLine = document.createElement('div');
+            subLine.className = 'detail';
             subLine.textContent = sub;
             container.appendChild(subLine);
         }
@@ -157,6 +177,7 @@ export function createRenderer(urlDisplayElement, messageElement) {
         if (text === null) {
             messageElement.innerHTML = '';
             messageElement.className = '';
+            if (cardElement) cardElement.hidden = true;
             return;
         }
         paint(text[0], text[1], tone(state.kind));

@@ -5,14 +5,31 @@ import { buildTabList } from './src/batch.js';
 import {
     getActiveTab, getAllTabs, copyToClipboard, requestTabsPermission
 } from './src/browser.js';
-import { createRenderer } from './src/ui.js';
+import { createRenderer, tone } from './src/ui.js';
+import { ALL_SITES, normaliseSite, isExcluded } from './src/auto.js';
+import { addRemoved, takeCount, formatCount } from './src/stats.js';
 
-// The automatic path: whatever tab the popup was opened over.
+// Counts the click's removals toward the running total. Opening the popup
+// copies again, so the same address is counted once, not on every opening.
+// What is kept to tell is a SHA-256 fingerprint, not the address: the privacy
+// policy promises no address is stored.
+async function countClick(url, removed) {
+    if (!(removed > 0)) return;
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url));
+    const fingerprint = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+    const { counted } = await chrome.storage.local.get('counted');
+    if (counted === fingerprint) return;
+    await chrome.storage.local.set({ counted: fingerprint });
+    await addRemoved(removed);
+}
+
+// The automatic path: whatever tab the popup was opened over. Returns the tab,
+// for the Exclude current site row.
 async function copyCurrentTab(show) {
     const tab = await getActiveTab();
     if (!tab || !tab.url) {
         show({ kind: 'no-tab' });
-        return;
+        return null;
     }
 
     // Before cleaning, and before the clipboard is touched at all. v1.4 and
@@ -20,7 +37,7 @@ async function copyCurrentTab(show) {
     // start page quietly replaced whatever the user already had.
     if (!isShareable(tab.url)) {
         show({ kind: 'not-shareable' });
-        return;
+        return tab;
     }
 
     let cleaned;
@@ -29,17 +46,19 @@ async function copyCurrentTab(show) {
     } catch (error) {
         console.error('Error cleaning URL:', error);
         show({ kind: 'invalid-url' });
-        return;
+        return tab;
     }
 
     if (!await copyToClipboard(cleaned.url)) {
         show({ kind: 'copy-failed', url: cleaned.url });
-        return;
+        return tab;
     }
 
     show(cleaned.changed
         ? { kind: 'cleaned', url: cleaned.url, removed: cleaned.removedCount }
         : { kind: 'already-clean', url: cleaned.url });
+    await countClick(tab.url, cleaned.removedCount);
+    return tab;
 }
 
 // The button. `granted` is resolved by the caller inside the click's own user
@@ -70,13 +89,146 @@ async function copyAllTabs(granted, show, restore) {
         skipped: list.skipped,
         merged: list.merged
     });
+    await addRemoved(list.removed);
+    // Shown now and marked seen, so the next opening's +N is not this click.
+    const { total } = await takeCount();
+    showCount(total, 0);
+}
+
+// --- Around the card: the count, the switch, support --------------------------
+
+// The day, in the person's own time zone: the thank-you card lasts until
+// midnight.
+const today = () => new Date().toLocaleDateString('en-CA');
+
+const $ = id => document.getElementById(id);
+
+// "N tracking parameters removed to date". Hidden at zero rather than showing
+// a 0. delta is what came in since the popup was last opened (automatic
+// cleaning's work, mostly), shown once.
+function showCount(total, delta) {
+    const line = $('counter');
+    if (!line) return;
+    line.hidden = total === 0;
+    $('counter-number').textContent = formatCount(total);
+    const plus = $('counter-delta');
+    plus.hidden = !(delta > 0);
+    plus.textContent = delta > 0 ? '+' + formatCount(delta) : '';
+}
+
+// The support row stays off browser pages, where there is nothing to share;
+// the thank-you card stays away from an error.
+async function showExtras(state) {
+    const kind = tone(state.kind);
+    const browserPage = state.kind === 'not-shareable' || state.kind === 'no-tab';
+    const support = $('support');
+    if (support) support.hidden = state.kind === 'loading' || browserPage;
+    const { thanked } = await chrome.storage.local.get('thanked');
+    const thanks = $('thanks');
+    if (thanks) thanks.hidden = thanked !== today() || kind === 'error' || state.kind === 'loading';
+}
+
+// Rate and Buy me a coffee open in a new tab. The day is written first,
+// because opening a tab closes the popup. Only the click can be seen, not
+// whether a rating or a coffee followed, so the card thanks for the support
+// and promises nothing.
+function wireSupport() {
+    for (const link of document.querySelectorAll('.support-link')) {
+        link.addEventListener('click', async event => {
+            event.preventDefault();
+            await chrome.storage.local.set({ thanked: today() });
+            chrome.tabs.create({ url: link.href });
+        });
+    }
+}
+
+// The switch. Turning it on asks Chrome for access to all sites, in the click
+// itself: Chrome only honours a permission request inside the user's gesture.
+// Turning it off gives the access back. background.js follows the stored
+// choice and the access, and writes the rules.
+async function wireSwitch(tab) {
+    const button = $('auto-switch');
+    if (!button) return;
+    const note = $('auto-note');
+
+    const isOn = async () => {
+        const [{ auto = false }, access] = await Promise.all([
+            chrome.storage.local.get('auto'),
+            chrome.permissions.contains(ALL_SITES)
+        ]);
+        return auto && access;
+    };
+
+    const host = tab && /^https?:/.test(tab.url || '') ? normaliseSite(new URL(tab.url).hostname) : null;
+
+    async function render(on) {
+        button.setAttribute('aria-checked', String(on));
+        $('auto-state').textContent = on ? 'On' : 'Off';
+        const row = $('auto-row');
+        row.hidden = !on;
+        const exclude = $('exclude');
+        exclude.hidden = !host;
+        if (host) {
+            const { excluded = [] } = await chrome.storage.local.get('excluded');
+            const off = isExcluded(host, excluded);
+            exclude.dataset.excluded = String(off);
+            $('exclude-text').textContent = off ? `Excluded ${host} · Undo` : 'Exclude current site';
+        }
+    }
+
+    button.addEventListener('click', async () => {
+        const turningOn = button.getAttribute('aria-checked') !== 'true';
+        note.hidden = true;
+        if (turningOn) {
+            // Asked for before anything is awaited, or the gesture is lost.
+            const asked = chrome.permissions.request(ALL_SITES);
+            let granted = false;
+            try {
+                granted = await asked;
+            } catch (error) {
+                console.warn('permissions.request failed:', error);
+            }
+            if (!granted) {
+                note.textContent = 'Turning this on needs access to all sites, to clean each link as it opens.';
+                note.hidden = false;
+                return render(false);
+            }
+            await chrome.storage.local.set({ auto: true });
+        } else {
+            await chrome.storage.local.set({ auto: false });
+            await chrome.permissions.remove(ALL_SITES).catch(() => {});
+        }
+        render(await isOn());
+    });
+
+    $('exclude').addEventListener('click', async () => {
+        if (!host) return;
+        const { excluded = [] } = await chrome.storage.local.get('excluded');
+        const next = isExcluded(host, excluded)
+            ? excluded.filter(site => !isExcluded(host, [site]))
+            : [...excluded, host];
+        await chrome.storage.local.set({ excluded: next });
+        render(true);
+    });
+
+    $('edit-sites').addEventListener('click', () => chrome.runtime.openOptionsPage());
+
+    await render(await isOn());
+    button.disabled = false;
 }
 
 async function main() {
-    const renderer = createRenderer(
+    const base = createRenderer(
         document.getElementById('url-display'),
-        document.getElementById('message')
+        document.getElementById('message'),
+        document.getElementById('status')
     );
+    const renderer = {
+        show(state) {
+            base.show(state);
+            showExtras(state).catch(error => console.debug('extras:', error));
+        }
+    };
 
     let current = { kind: 'loading' };
     let owner = 0;
@@ -151,7 +303,18 @@ async function main() {
         });
     }
 
-    await copyCurrentTab(claimant());
+    wireSupport();
+    // Read before this opening's own click is counted, so +N is what came in
+    // between openings.
+    const before = await takeCount().catch(() => ({ total: 0, delta: 0 }));
+    showCount(before.total, before.delta);
+
+    const tab = await copyCurrentTab(claimant());
+
+    // The click may have added to the total; the +N stays as it was.
+    const after = await takeCount().catch(() => before);
+    showCount(after.total, before.delta);
+    await wireSwitch(tab);
 }
 
 // Last line of defence: the popup must never sit there saying nothing,

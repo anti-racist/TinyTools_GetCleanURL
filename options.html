@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self';
+                   style-src 'self';
+                   img-src 'self' data:;
+                   connect-src 'self';
+                   object-src 'none';">
+    <title>Auto-clean · Get Clean URL</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <main class="page">
+        <header class="head">
+            <p class="eyebrow">Get Clean URL</p>
+            <h1>Auto-clean</h1>
+            <p class="lead">Choose which sites automatic cleaning leaves alone.</p>
+        </header>
+
+        <section class="panel" aria-labelledby="excluded-title">
+            <h2 id="excluded-title">Excluded sites</h2>
+            <p class="help">Automatic cleaning leaves these sites as they are, subdomains included. Clicking Get Clean URL still cleans them.</p>
+            <p id="count" class="count"></p>
+            <form id="add" class="add">
+                <label for="site" class="visually-hidden">Site to exclude</label>
+                <input id="site" type="text" placeholder="e.g. example.com" autocomplete="off" spellcheck="false">
+                <button type="submit">Add</button>
+            </form>
+            <p id="error" class="error" role="alert" hidden></p>
+            <ul id="list" class="list"></ul>
+        </section>
+    </main>
+    <script type="module" src="options.js"></script>
+</body>
+</html>

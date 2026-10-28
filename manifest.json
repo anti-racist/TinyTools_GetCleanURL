@@ -1,15 +1,29 @@
 {
   "manifest_version": 3,
   "name": "Get Clean URL",
-  "version": "2.6",
+  "version": "3.0",
   "description": "Get a clean URL without tracking parameters with one click, or all your open tabs at once.",
   "permissions": [
     "activeTab",
-    "clipboardWrite"
+    "clipboardWrite",
+    "storage",
+    "declarativeNetRequestWithHostAccess",
+    "webRequest"
   ],
   "optional_permissions": [
     "tabs"
   ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "content_security_policy": {
     "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'"
   },

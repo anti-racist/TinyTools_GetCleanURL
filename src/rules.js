@@ -682,6 +682,20 @@ const googleSearchParams = new Set([
 
 const googleSearchPrefixes = /^gs_/;
 
+// --- Baidu ------------------------------------------------------------------
+
+// What Baidu's results page carries beside the search, wd: sa, rsv_dl and from
+// (the entry point), the rsv_ family (Baidu's own tracking), fr (the list the
+// search was opened from), cl and hisfilter. All on AdGuard's Baidu list.
+// Tested on a link from Baidu's trending list: the same search without them.
+//
+// tn, a partner or channel code, is kept although AdGuard takes it: without
+// it the same link once brought up Baidu's captcha. It names a channel, not a
+// person. ie (the search's encoding - without it a GBK search is misread) and
+// pn (the results page) are kept as well.
+const baiduSearchParams = new Set(['sa', 'from', 'fr', 'cl', 'hisfilter']);
+const baiduSearchPrefixes = /^rsv_/;
+
 // --- Substack ---------------------------------------------------------------
 
 // Substack publications often live on their own domains, so no domain list
@@ -813,6 +827,13 @@ const siteRules = [
     { id: 'medium', domains: ['medium.com'], params: mediumParams },
     { id: 'ebay',      domains: ebayDomains,   params: ebayParams,   path: /^\/itm\// },
     { id: 'target',    domains: ['target.com'], params: targetParams, path: /^\/p\// },
+    {
+        id: 'baidu',
+        domains: ['baidu.com'],
+        params: baiduSearchParams,
+        prefixes: baiduSearchPrefixes,
+        path: /^\/s\/?$/
+    },
     // Results pages only. google.com also serves Docs, Accounts, Mail and
     // Drive, where these names are nobody's business to remove. Google has
     // redirected its country domains to google.com since April 2025, so no

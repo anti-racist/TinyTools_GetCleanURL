@@ -5,276 +5,433 @@
     box-sizing: border-box;
 }
 
-/* Base styles.
+/* The Stacked design (3.0). Colour belongs to state alone: green, yellow and
+   red appear only on the status card - its bar and its tint. The count, the
+   buttons and the links are neutral.
 
-   The ground is 鱼肚白 #f7f4ed - a traditional off-white, the colour named
-   for the eastern sky at dawn. html, body and the container all carry it,
-   so the whole popup is one surface.
+   The ground is 鱼肚白 #f7f4ed, the colour named for the eastern sky at dawn.
+   The URL box is the one pure white inside the card: the URL is what the
+   popup was opened for.
 
-   That leaves #url-display as the only pure white in here, which is the
-   point: the URL is what the popup was opened for, and it is now the
-   brightest thing on the page instead of white-on-white held apart by a
-   shadow. Measured on this ground - #333 body text 11.50:1, the button
-   border 3.74:1, its label 5.62:1 - everything stays clear of AA. */
+   --muted was #6b675c in the mockup, which measured 4.48:1 on the green
+   tint and 4.37:1 on the red one. #5f5b51 is 5.37 and 5.24, and 6.16 on the
+   ground. */
+:root {
+    --paper: #f7f4ed;
+    --card: #ffffff;
+    --ink: #22211c;
+    --muted: #5f5b51;
+    --hairline: #e2ddd0;
+    /* A control's edge needs 3:1 against the ground: 3.14. */
+    --edge: #8f8a7c;
+    /* 官绿, a Ming-Qing dye name. 4.90:1 on its tint, 5.62 on the ground. */
+    --green: #2a6e3f;
+    --green-sub: #dde8de;
+    /* 藤黃, gamboge. Too light for text, so the yellow card's words are
+       --notice-ink: 7.53:1 on the tint. */
+    --notice: #ffb61e;
+    --notice-sub: #fbefd4;
+    --notice-ink: #5c4a12;
+    /* 6.39:1 on its tint. */
+    --danger: #981e22;
+    --danger-sub: #f1dede;
+    /* The off switch's track. Its fill is 1.51:1 on the ground, so the edge
+       is drawn at 3.40:1. */
+    --mount: #bdcbd2;
+    --mount-edge: #7a868c;
+}
+
 html {
-    background-color: #f7f4ed;
+    background-color: var(--paper);
 }
 
 body {
     width: 340px;
-    background-color: #f7f4ed;
+    background-color: var(--paper);
+    color: var(--ink);
     font-family: 'Segoe UI', Arial, sans-serif;
-    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
     padding: 16px;
 }
 
-/* Not a card. Chrome already draws the popup a border and a shadow, and the
-   card that used to be here was the same colour as the body behind it, so it
-   separated nothing.
-
-   No overflow: hidden either. It clipped content to the old corner
-   radius, and with this padding gone the button reaches the full width,
-   so it would now clip the button's focus ring instead. The ring sits in
-   the body's 16px padding. */
 .popup-container {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    border: none;
-    position: relative;
-    text-align: center;
-}
-
-/* URL Display Box with elegant styling. Hidden outright when there is
-   nothing on the clipboard to put in it - the UA default for [hidden] is
-   enough, but this states it next to the rest of the box's own layout. */
-#url-display[hidden] {
-    display: none;
-}
-
-#url-display {
-    /* The one pure white; see the note on the ground above. */
-    background-color: #ffffff;
-    padding: 16px;
-    border-radius: 10px;
-    margin: 0 auto 16px auto;
-    word-break: break-all;
-    /* A batch puts one URL per line in here; a single URL has no newlines,
-       so nothing about the existing display changes. */
-    white-space: pre-wrap;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #333333;
-    border: 1px solid #e2ddd0;
-    max-height: 85px;
-    overflow-y: auto;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     text-align: left;
-    position: relative;
-    transform: translateZ(0);
-    will-change: transform;
 }
 
-#url-display:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px) translateZ(0);
+[hidden] {
+    display: none !important;
 }
 
-/* Message Styling with refined design */
-#message {
-    font-size: 14px;
-    font-weight: 500;
-    margin: 0 auto 14px;
+.icon {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* --- Settings: the switch, the site row, the count ----------------------- */
+
+.settings {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.switch-row {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    padding: 14px 16px;
-    border-radius: 10px;
+    gap: 8px;
+}
+
+.switch-label {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Outlined, not filled: it describes the switch, it is not a state. */
+.tag {
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--muted);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 0 6px;
+}
+
+/* On and Off in words beside the switch, so the state never rests on colour
+   alone. */
+.switch-state {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 20px;
+    text-align: right;
+}
+
+.switch-row:has(.switch[aria-checked="true"]) .switch-state {
+    color: var(--green);
+}
+
+.switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex: none;
+    border-radius: 999px;
+    border: 1px solid var(--mount-edge);
+    background: var(--mount);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.switch .knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+}
+
+.switch[aria-checked="true"] {
+    background: var(--green);
+    border-color: var(--green);
+}
+
+.switch[aria-checked="true"] .knob {
+    transform: translateX(18px);
+}
+
+.switch:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.note {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+/* Belongs to the switch above it, so no rule between them. Neither link says
+   "Settings": both are about automatic cleaning, not the whole product. */
+.auto-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.link-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--muted);
+    background: none;
     border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.link-button:hover {
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+.counter {
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.counter .count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+/* Passing feedback, so the one place green appears outside a card. */
+.delta {
+    color: var(--green);
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.delta::before {
+    content: "\25CF";
+    font-size: 7px;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+/* --- The status card ----------------------------------------------------- */
+
+/* A bar on the left edge - square outside, rounded 4px inside - and a tint.
+   Changing state changes only the colours. */
+.status {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    padding: 12px 12px 12px 16px;
+    background: var(--green-sub);
     animation: fadeIn 0.12s ease-out forwards;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    text-align: left;
-    width: 100%;
-    transform: translateZ(0);
-    will-change: transform;
 }
 
-#message:hover {
-    transform: translateY(-2px) translateZ(0);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+.status::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: var(--green);
 }
 
-/* Message text container */
+.status.success { background: var(--green-sub); }
+.status.success::before { background: var(--green); }
+.status.success .title { color: var(--green); }
+
+.status.notice { background: var(--notice-sub); }
+.status.notice::before { background: var(--notice); }
+.status.notice .title { color: var(--notice-ink); }
+
+.status.error { background: var(--danger-sub); }
+.status.error::before { background: var(--danger); }
+.status.error .title { color: var(--danger); }
+
+/* The box holds what is on the clipboard, so it only appears when something
+   was copied (or could not be, and is there to copy by hand). */
+#url-display {
+    background-color: var(--card);
+    border-radius: 7px;
+    padding: 9px 11px;
+    margin-bottom: 10px;
+    /* An English monospace face is named first: the bare `monospace`
+       fallback is a CJK face on Chinese Windows, with wide gaps after each
+       dot. */
+    font-family: Consolas, 'Cascadia Mono', Menlo, 'DejaVu Sans Mono', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #333333;
+    /* A batch puts one URL per line in here. A long URL breaks anywhere:
+       breaking only after ? and & would mean inserting characters, and they
+       would ride along when someone copies from the box by hand. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 85px;
+    overflow-y: auto;
+}
+
 .message-text {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
-/* Success Message - with improved green styling */
-.success {
-    color: #ffffff;
-    /* 官绿, a Ming-Qing dye name. White on it is 6.18:1, where the green it
-       replaces ran 2.59-3.15:1 and failed AA outright. */
-    background: #2a6e3f;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+.message-text .title {
+    font-size: 14px;
+    font-weight: 500;
 }
 
-/* Success icon with animation */
-.success::before {
-    content: "\2714";
-    color: #ffffff;
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 16px;
-    display: inline-block;
+.message-text .detail {
+    font-size: 12px;
+    color: var(--muted);
 }
 
-/* Info and notice share the yellow; they differ only in the mark, because
-   one of them copied something and the other did not. */
-.info,
-.notice {
-    color: #000000;
-    /* 藤黃, gamboge - the tree resin used as a painting pigment. Black on it
-       is 11.96:1; this state was already the only one that passed. */
-    background: #ffb61e;
-    text-shadow: none;
+/* --- Copy all open tabs --------------------------------------------------- */
+
+/* Neutral: white with an edge. Green is kept for state, and a green button
+   beside a yellow or red card clashed. */
+#copy-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    background-color: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
 }
 
-/* The tick belongs to already-clean alone: that state did put a URL on the
-   clipboard, it just had nothing to strip. Black, not green - every mark takes
-   the colour of the text beside it, which is the only rule that makes the four
-   of them a set. Green here measured 3.52:1; black measures 11.96. */
-.info::before {
-    content: "\2714";
-    color: #000000;
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 16px;
-    display: inline-block;
+#copy-all .icon {
+    width: 13px;
+    height: 13px;
 }
 
-/* Nothing was copied here, so no tick: a circled i, in the same CSS content
-   mechanism as the other two marks. */
-.notice::before {
-    content: "\24D8";
-    color: #000000;
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 16px;
-    display: inline-block;
+#copy-all:hover {
+    background-color: #fbfaf6;
 }
 
-/* Error Message - with improved red styling */
-.error {
-    color: #ffffff;
-    /* 赤 - "the colour of fire", one of the five cardinal colours. White on
-       it is 5.76:1, against 3.43-4.66:1 before. */
-    background: #c3272b;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+#copy-all:active {
+    background-color: var(--hairline);
 }
 
-/* Text, not emoji. U+274C is Emoji_Presentation=Yes, so the browser drew its
-   own red glyph and ignored the colour below - a red cross on 赤, about 1.2:1.
-   U+2716 is the heavy weight that pairs with U+2714 and takes the white: 5.76. */
-.error::before {
-    content: "\2716";
-    color: #ffffff;
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 16px;
-    display: inline-block;
+/* --- Thank-you card ------------------------------------------------------- */
+
+/* The one coloured card that is not a state, so it is the pale yellow no
+   state uses for its tint at this size, with an edge: the tint and the
+   ground are nearly the same brightness. Shown for the rest of the day after
+   Rate or Buy me a coffee is clicked; never beside an error. */
+.thanks {
+    position: relative;
+    overflow: hidden;
+    background: var(--notice-sub);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 13px 14px;
 }
 
-/* Enhanced fade-in animation */
+.thanks-title {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.thanks-detail {
+    margin-top: 9px;
+    font-size: 11.5px;
+    line-height: 1.55;
+    /* 4.83:1 on the tint. */
+    color: #7a6644;
+}
+
+.thanks-mark {
+    position: absolute;
+    right: -6px;
+    bottom: -12px;
+    width: 84px;
+    height: 84px;
+    opacity: 0.10;
+    fill: none;
+    stroke: var(--notice-ink);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+/* --- Support row ---------------------------------------------------------- */
+
+.support {
+    display: flex;
+    gap: 16px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hairline);
+}
+
+.support-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.support-link:hover {
+    color: var(--ink);
+}
+
+/* --- Focus and motion ----------------------------------------------------- */
+
+#copy-all:focus-visible,
+.switch:focus-visible,
+.link-button:focus-visible,
+.support-link:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(6px) translateZ(0);
+        transform: translateY(6px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) translateZ(0);
+        transform: translateY(0);
     }
 }
 
-/* Reduced motion: everything that MOVES comes off. The fade carries a 6px
-   slide and the hover lift is a translate; the colour and shadow changes are
-   not motion and stay, so the popup still answers the mouse. */
 @media (prefers-reduced-motion: reduce) {
-    #message {
+    .status {
         animation: none;
     }
-
-    #url-display:hover,
-    #message:hover {
-        transform: none;
+    .switch,
+    .switch .knob {
+        transition: none;
     }
 }
 
-/* Refined Scrollbar styling */
 ::-webkit-scrollbar {
     width: 4px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(245, 245, 245, 0.5);
-    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
     background: rgba(42, 110, 63, 0.5);
     border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(42, 110, 63, 0.7);
-}
-
-/* Secondary action - deliberately quieter than the copy that happens on its
-   own above it. The label says what it does in plain words because that is
-   also what explains the permission Chrome asks for the first time it is
-   pressed: a prompt that follows "Copy all open tabs" reads as obvious,
-   where one that follows "Batch mode" reads as unexplained.
-
-   Outlined rather than filled, in the same 官绿 the success state is painted
-   with. A border is enough to mark it as a control; a fill would make it the
-   loudest thing here, and the action it performs is the secondary one - the
-   copy that matters has already happened by the time the popup is drawn. */
-#copy-all {
-    width: 100%;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    color: #2a6e3f;
-    background-color: transparent;
-    border: 1px solid rgba(42, 110, 63, 0.8);
-    border-radius: 10px;
-    /* WCAG 1.4.11: the border is what identifies this as a control, so it
-       carries the alpha that measures 3.74:1 against the paper ground - 0.7
-       would be 3.08, too near the 3.0 floor to spend.
-       10 + 1px of border = the 11px the filled version padded, so the
-       button keeps the height everything above it was spaced against. */
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-/* Fills in, rather than lifting: the lift is the language of the boxes above,
-   and borrowing it back is what made the button look like one of them. */
-#copy-all:hover {
-    border-color: #2a6e3f;
-    background-color: rgba(42, 110, 63, 0.06);
-}
-
-#copy-all:active {
-    background-color: rgba(42, 110, 63, 0.12);
-}
-
-/* Was #ffa000, which measured 2.04:1 against the white this popup used to
-   for the only thing in here that can hold focus. */
-#copy-all:focus-visible {
-    outline: 2px solid #2a6e3f;
-    outline-offset: 2px;
 }
