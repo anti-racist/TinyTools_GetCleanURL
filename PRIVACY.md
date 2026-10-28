@@ -32,7 +32,7 @@ Everything below stays in your browser's own storage (`chrome.storage.local`) on
 | Excluded sites | The sites you chose for Auto-clean to leave alone, as bare names such as `example.com` |
 | Running count | How many tracking parameters the toolbar icon and **Copy all open tabs** have removed to date: a number only, no addresses or names |
 | Last page counted | A fingerprint (a SHA-256 hash) of the last address the toolbar icon cleaned, so reopening the popup on the same page does not count it twice. The address cannot be read back from it. Replaced on the next one |
-| Thank-you day | The date you last clicked **Rate Get Clean URL** or **Buy me a coffee**, so the thank-you card shows for the rest of that day |
+| Thank-you time | When you last clicked **Rate Get Clean URL** or **Buy me a coffee**, so the thank-you card shows for the 24 hours after |
 
 ## Links to other sites
 
